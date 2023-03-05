@@ -6,6 +6,7 @@ import io.grpc.ServerBuilder;
 
 import java.io.IOException;
 
+import pt.tecnico.distledger.server.domain.ServerState;
 import pt.tecnico.distledger.server.service.*;
 
 public class ServerMain {
@@ -28,9 +29,11 @@ public class ServerMain {
         }
 
         final int port = Integer.parseInt(args[0]);
+
+        ServerState state = new ServerState();
         
-        final BindableService userImpl = new userDistLedgerServiceImpl();
-        final BindableService adminImpl = new adminDistLedgerServiceImpl();
+        final BindableService userImpl = new userDistLedgerServiceImpl(state);
+        final BindableService adminImpl = new adminDistLedgerServiceImpl(state);
 
         // Create a new server to listen on port
         Server server = ServerBuilder.forPort(port)
