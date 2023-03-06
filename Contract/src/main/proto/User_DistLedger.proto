@@ -8,20 +8,20 @@ message BalanceRequest {
 }
 
 message BalanceResponse {
-  int32 value = 1;
+  int32 amount = 1;
 }
 
 message CreateAccountRequest {
   string userId = 1;
 }
 
-message CreateAccountResponse {}
+message CreateAccountResponse { }
 
 message DeleteAccountRequest {
   string userId = 1;
 }
 
-message DeleteAccountResponse {}
+message DeleteAccountResponse { }
 
 message TransferToRequest {
   string accountFrom = 1;
@@ -29,7 +29,7 @@ message TransferToRequest {
   int32 amount = 3;
 }
 
-message TransferToResponse {}
+message TransferToResponse { }
 
 service UserService {
   rpc balance(BalanceRequest) returns (BalanceResponse);

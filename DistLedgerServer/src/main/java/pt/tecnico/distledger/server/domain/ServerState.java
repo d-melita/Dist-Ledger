@@ -2,6 +2,7 @@ package pt.tecnico.distledger.server.domain;
 
 import pt.tecnico.distledger.server.domain.operation.*;
 import pt.tecnico.distledger.server.domain.userAccount;
+import pt.ulisboa.tecnico.distledger.contract.user.UserDistLedger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.HashMap;
 public class ServerState {
     private List<Operation> ledger;
 
-    Map<userAccount, Integer> accounts;
+    Map<String, userAccount> accounts;
 
     private boolean active = false;
 
@@ -38,6 +39,7 @@ public class ServerState {
         this.ledger.add(op);
     }
 
+    // User Interface Operations
     public void createAccount(String name) {
         userAccount account = new userAccount(name, INITIAL_BALANCE);
         addAccount(account);
@@ -45,65 +47,61 @@ public class ServerState {
         addOperation(op);
     }
 
-    private void addAccount(userAccount account) {
-        this.accounts.put(account, account.getBalance());
-    }
-
-    private void updateAccountBalance(userAccount account, Integer balance) {
-        this.accounts.put(account, balance); // put replaces the value if the key already exists
-    }
-
     public void deleteAccount(String name) {
-        for (Map.Entry<userAccount, Integer> entry : this.accounts.entrySet()) {
-            if (entry.getKey().getName().equals(name) && entry.getValue() == 0) {
-                this.accounts.remove(entry.getKey());
-            }
+        if (!accountExists(name)) {
+            System.out.println("Account does not exist");
+            return;
         }
-        // account does not exist -> throw exception TODO
-
+        accounts.remove(name);
         DeleteOp op = new DeleteOp(name);
         addOperation(op);
     }
 
-    public Integer getAccountBalance(String name) {
-        for (Map.Entry<userAccount, Integer> entry : this.accounts.entrySet()) {
-            if (entry.getKey().getName().equals(name)) {
-                return entry.getValue();
-            }
-        }
-        // account does not exist -> throw exception TODO
-        return null;
-    }
-
     public void transfer(String from, String to, Integer amount) {
-        // verificar se tem dinheiro suficiente
-        // Integer fromBalance = getAccountBalance(from);
-        // if (fromBalance < amount) {
-        //     System.out.println("Not enough money");
-        //     return;
-        // }
-        // verificar se conta destino existe
-        // if (getAccountBalance(to) == null) {
-        //     System.out.println("Destination account does not exist");
-        //     return;
-        // }
-
-        // update accounts
-        for (Map.Entry<userAccount, Integer> entry : this.accounts.entrySet()) {
-            if (entry.getKey().getName().equals(from)) {
-                updateAccountBalance(entry.getKey(), entry.getValue() - amount);
-            }
-
-            if (entry.getKey().getName().equals(to)) {
-                updateAccountBalance(entry.getKey(), entry.getValue() + amount);
-            }
+        if (!accountExists(from) || !accountExists(to)) {
+            // TODO - THROW EXCEPTION
+            System.out.println("Account does not exist");
+            return;
         }
-
-        // add operation to ledger
+        if (!accountHasBalance(from, amount)) {
+            // TODO - THROW EXCEPTION
+            System.out.println("Insufficient funds");
+            return;
+        }
+        updateAccountBalance(accounts.get(from), accounts.get(from).getBalance() - amount);
+        updateAccountBalance(accounts.get(to), accounts.get(to).getBalance() + amount);
         TransferOp op = new TransferOp(from, to, amount);
         addOperation(op);
-        
     }
+
+    public int getAccountBalance(String name) {
+        int balance = 0;
+        if (!accountExists(name)) {
+            // TODO - THROW EXCEPTION
+            System.out.println("Account does not exist");
+            return balance;
+        }
+    return accounts.get(name).getBalance();
+    }
+
+    // User Interface Operations - Helper Methods
+    private void addAccount(userAccount account) {
+        this.accounts.put(account.getName(), account);
+    }
+
+    private void updateAccountBalance(userAccount account, Integer balance) {
+        account.setBalance(balance);
+    }
+
+    public boolean accountExists(String name) {
+        return accounts.get(name) != null;
+    }
+
+    public boolean accountHasBalance(String name, Integer amount) {
+        return accounts.get(name).getBalance() >= amount;
+    }
+
+    // Admin interface operations
 
     public void activate() {
         this.active = true;
@@ -113,15 +111,15 @@ public class ServerState {
         this.active = false;
     }
 
-    public boolean isActive() {
-        return this.active;
-    }
-
     public List<Operation> getLedger() {
         return this.ledger;
     }
 
-    public Map<userAccount, Integer> getAccounts() {
+    public boolean isActive() {
+        return this.active;
+    }
+
+    public Map<String, userAccount> getAccounts() {
         return this.accounts;
     }
 
@@ -132,7 +130,7 @@ public class ServerState {
     }
 
     public void printAccounts() {
-        for (Map.Entry<userAccount, Integer> entry : this.accounts.entrySet()) {
+        for (Map.Entry<String, userAccount> entry : this.accounts.entrySet()) {
             System.out.println(entry.getKey().toString() + " " + entry.getValue());
         }
     }
