@@ -1,6 +1,6 @@
 package pt.tecnico.distledger.server.domain;
 
-import pt.tecnico.distledger.server.domain.operation.Operation;
+import pt.tecnico.distledger.server.domain.operation.*;
 import pt.tecnico.distledger.server.domain.userAccount;
 
 import java.util.ArrayList;
@@ -15,8 +15,8 @@ public class ServerState {
 
     private boolean active = false;
 
-    static final String BROKER_NAME = "broker";
     static final String UNAVAILABLE = "UNAVAILABLE";
+    static final String BROKER_NAME = "broker";
     static final Integer BROKER_INITIAL_BALANCE = 1000;
     static final Integer INITIAL_BALANCE = 0;
 
@@ -41,6 +41,8 @@ public class ServerState {
     public void createAccount(String name) {
         userAccount account = new userAccount(name, INITIAL_BALANCE);
         addAccount(account);
+        CreateOp op = new CreateOp(name);
+        addOperation(op);
     }
 
     private void addAccount(userAccount account) {
@@ -58,6 +60,9 @@ public class ServerState {
             }
         }
         // account does not exist -> throw exception TODO
+
+        DeleteOp op = new DeleteOp(name);
+        addOperation(op);
     }
 
     public Integer getAccountBalance(String name) {
@@ -93,6 +98,10 @@ public class ServerState {
                 updateAccountBalance(entry.getKey(), entry.getValue() + amount);
             }
         }
+
+        // add operation to ledger
+        TransferOp op = new TransferOp(from, to, amount);
+        addOperation(op);
         
     }
 
