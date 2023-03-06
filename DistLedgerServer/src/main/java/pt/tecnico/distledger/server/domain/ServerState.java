@@ -3,6 +3,7 @@ package pt.tecnico.distledger.server.domain;
 import pt.tecnico.distledger.server.domain.operation.*;
 import pt.tecnico.distledger.server.domain.userAccount;
 import pt.ulisboa.tecnico.distledger.contract.user.UserDistLedger;
+import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.OperationType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,7 @@ public class ServerState {
     public void createAccount(String name) {
         userAccount account = new userAccount(name, INITIAL_BALANCE);
         addAccount(account);
-        CreateOp op = new CreateOp(name);
+        CreateOp op = new CreateOp(name, OperationType.OP_CREATE_ACCOUNT);
         addOperation(op);
     }
 
@@ -53,7 +54,7 @@ public class ServerState {
             return;
         }
         accounts.remove(name);
-        DeleteOp op = new DeleteOp(name);
+        DeleteOp op = new DeleteOp(name, OperationType.OP_DELETE_ACCOUNT);
         addOperation(op);
     }
 
@@ -70,7 +71,7 @@ public class ServerState {
         }
         updateAccountBalance(accounts.get(from), accounts.get(from).getBalance() - amount);
         updateAccountBalance(accounts.get(to), accounts.get(to).getBalance() + amount);
-        TransferOp op = new TransferOp(from, to, amount);
+        TransferOp op = new TransferOp(from, to, amount, OperationType.OP_TRANSFER_TO);
         addOperation(op);
     }
 

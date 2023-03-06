@@ -1,11 +1,12 @@
 package pt.tecnico.distledger.server.domain.operation;
+import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.OperationType;
 
 public class TransferOp extends Operation {
     private String destAccount;
     private int amount;
 
-    public TransferOp(String fromAccount, String destAccount, int amount) {
-        super(fromAccount);
+    public TransferOp(String fromAccount, String destAccount, int amount, OperationType type) {
+        super(fromAccount, type);
         this.destAccount = destAccount;
         this.amount = amount;
     }

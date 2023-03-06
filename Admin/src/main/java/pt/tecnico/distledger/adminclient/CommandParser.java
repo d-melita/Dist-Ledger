@@ -1,6 +1,9 @@
 package pt.tecnico.distledger.adminclient;
 
 import pt.tecnico.distledger.adminclient.grpc.AdminService;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import pt.ulisboa.tecnico.distledger.contract.admin.AdminDistLedger.*;
 
 import java.util.Scanner;
 
@@ -61,39 +64,39 @@ public class CommandParser {
     }
 
     private void activate(String line){
-        String[] split = line.split(SPACE);
+        /*String[] split = line.split(SPACE);
 
         if (split.length != 2){
             this.printUsage();
             return;
         }
-        String server = split[1];
+        String server = split[1];*/
 
-        System.out.println("TODO: implement activate command");
+        adminService.activate();
     }
 
     private void deactivate(String line){
-        String[] split = line.split(SPACE);
+        /*String[] split = line.split(SPACE);
 
         if (split.length != 2){
             this.printUsage();
             return;
         }
-        String server = split[1];
+        String server = split[1];*/
 
-        System.out.println("TODO: implement deactivate command");
+        adminService.deactivate();
     }
 
     private void dump(String line){
-        String[] split = line.split(SPACE);
+        /*String[] split = line.split(SPACE);
 
         if (split.length != 2){
             this.printUsage();
             return;
         }
-        String server = split[1];
+        String server = split[1];*/
 
-        System.out.println("TODO: implement getLedgerState command");
+        adminService.dump();
     }
 
     @SuppressWarnings("unused")
