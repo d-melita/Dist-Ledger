@@ -16,17 +16,23 @@ public class UserService {
 
     public void createAccount(String server, String username) {
         stub.createAccount(UserDistLedger.CreateAccountRequest.newBuilder().setUserId(username).build());
+        System.out.println("OK\n");
     }
 
     public void deleteAccount(String server, String username) {
         stub.deleteAccount(UserDistLedger.DeleteAccountRequest.newBuilder().setUserId(username).build());
+        System.out.println("OK\n");
     }
 
-    public int balance(String server, String username) {
-        return stub.balance(UserDistLedger.BalanceRequest.newBuilder().setUserId(username).build()).getAmount();
+    public void balance(String server, String username) {
+        UserDistLedger.BalanceResponse response = stub.balance(UserDistLedger.BalanceRequest.newBuilder().setUserId(username).build());
+        System.out.println("OK");
+        System.out.println(response.getAmount());
+        System.out.println();
     }
 
     public void transferTo(String server, String from, String dest, int amount) {
         stub.transferTo(UserDistLedger.TransferToRequest.newBuilder().setAccountFrom(from).setAccountTo(dest).setAmount(amount).build());
+        System.out.println("OK\n");
     }
 }

@@ -31,6 +31,10 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             responseObserver.onError(Status.INVALID_ARGUMENT.withDescription("Account does not exist").asRuntimeException());
             return;
         }
+        if (state.getAccountBalance(request.getUserId()) > 0) {
+            responseObserver.onError(Status.INVALID_ARGUMENT.withDescription("Account has balance").asRuntimeException());
+            return;
+        }
         DeleteAccountResponse response = DeleteAccountResponse.newBuilder().build();
         state.deleteAccount(request.getUserId());
         responseObserver.onNext(response);
@@ -44,6 +48,8 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             return;
         }
         BalanceResponse response = BalanceResponse.newBuilder().setAmount(state.getAccountBalance(request.getUserId())).build();
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
     }
 
     @Override
@@ -52,7 +58,7 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             responseObserver.onError(Status.INVALID_ARGUMENT.withDescription("Account does not exist").asRuntimeException());
             return;
         }
-        if (state.accountHasBalance(request.getAccountFrom(), request.getAmount())) {
+        if (!state.accountHasBalance(request.getAccountFrom(), request.getAmount())) {
             responseObserver.onError(Status.INVALID_ARGUMENT.withDescription("Not enough funds").asRuntimeException());
             return;
         }

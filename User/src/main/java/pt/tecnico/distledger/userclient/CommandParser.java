@@ -104,8 +104,7 @@ public class CommandParser {
         String server = split[1];
         String username = split[2];
 
-        int balance = userService.balance(server, username);
-        System.out.println("Balance: " + balance);
+        userService.balance(server, username);
     }
 
     private void transferTo(String line){
