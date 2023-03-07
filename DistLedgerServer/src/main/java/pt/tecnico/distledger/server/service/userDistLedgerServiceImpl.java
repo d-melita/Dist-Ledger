@@ -44,6 +44,10 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
             return;
+        } catch (AccountHasBalanceException e) {
+            responseObserver
+                    .onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+            return;
         } catch (Exception e) {
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
