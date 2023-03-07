@@ -54,6 +54,14 @@ public class ServerState {
         if (!accountExists(name)) {
             throw new AccountDoesntExistException(name);
         }
+        if (getAccountBalance(name) > 0) {
+            System.out.println("Account has balance, cannot remove");
+            return;
+        }
+        if (getAccountBalance(name) > 0) {
+            System.out.println("Account has balance, cannot remove");
+            return;
+        }
         accounts.remove(name);
         DeleteOp op = new DeleteOp(name, OperationType.OP_DELETE_ACCOUNT);
         addOperation(op);
@@ -76,7 +84,8 @@ public class ServerState {
         addOperation(op);
     }
 
-    public int getAccountBalance(String name) {
+    public Integer getAccountBalance(String name) {
+        int balance = 0;
         if (!accountExists(name)) {
             throw new AccountDoesntExistException(name);
         }

@@ -77,7 +77,7 @@ public class CommandParser {
         String server = split[1];
         String username = split[2];
 
-        System.out.println("TODO: implement createAccount command");
+        userService.createAccount(server, username);
     }
 
     private void deleteAccount(String line){
@@ -90,7 +90,7 @@ public class CommandParser {
         String server = split[1];
         String username = split[2];
 
-        System.out.println("TODO: implement deleteAccount command");
+        userService.deleteAccount(server, username);
     }
 
 
@@ -104,7 +104,7 @@ public class CommandParser {
         String server = split[1];
         String username = split[2];
 
-        System.out.println("TODO: implement balance command");
+        userService.balance(server, username);
     }
 
     private void transferTo(String line){
@@ -119,7 +119,7 @@ public class CommandParser {
         String dest = split[3];
         Integer amount = Integer.valueOf(split[4]);
 
-        System.out.println("TODO: implement transferTo command");
+        userService.transferTo(server, from, dest, amount);
     }
 
     private void printUsage() {
