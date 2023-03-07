@@ -1,7 +1,8 @@
 package pt.tecnico.distledger.server.domain.operation;
-import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.OperationType;
+import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
+import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.*;
 
-public class Operation {
+public abstract class Operation {
     private String account;
     private OperationType type;
 
@@ -25,5 +26,7 @@ public class Operation {
     public void setType(OperationType type) {
         this.type = type;
     }
+
+    public abstract DistLedgerCommonDefinitions.Operation convertToProto();
 
 }
