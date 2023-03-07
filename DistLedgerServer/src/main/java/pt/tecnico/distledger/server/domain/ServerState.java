@@ -1,8 +1,6 @@
 package pt.tecnico.distledger.server.domain;
 
 import pt.tecnico.distledger.server.domain.operation.*;
-import pt.tecnico.distledger.server.domain.userAccount;
-import pt.ulisboa.tecnico.distledger.contract.user.UserDistLedger;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.OperationType;
 
 import java.util.ArrayList;
@@ -15,7 +13,7 @@ public class ServerState {
 
     Map<String, userAccount> accounts;
 
-    private boolean active = false;
+    private boolean active = true;
 
     static final String UNAVAILABLE = "UNAVAILABLE";
     static final String BROKER_NAME = "broker";
