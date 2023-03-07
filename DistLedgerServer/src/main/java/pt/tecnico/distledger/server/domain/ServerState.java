@@ -1,5 +1,6 @@
 package pt.tecnico.distledger.server.domain;
 
+import pt.tecnico.distledger.server.exceptions.*;
 import pt.tecnico.distledger.server.domain.operation.*;
 import pt.tecnico.distledger.server.domain.userAccount;
 import pt.ulisboa.tecnico.distledger.contract.user.UserDistLedger;
@@ -41,6 +42,9 @@ public class ServerState {
 
     // User Interface Operations
     public void createAccount(String name) {
+        if (accountExists(name)) {
+            throw new AccountAlreadyExistsException(name);
+        }
         userAccount account = new userAccount(name, INITIAL_BALANCE);
         addAccount(account);
         CreateOp op = new CreateOp(name);
@@ -49,8 +53,7 @@ public class ServerState {
 
     public void deleteAccount(String name) {
         if (!accountExists(name)) {
-            System.out.println("Account does not exist");
-            return;
+            throw new AccountDoesntExistException(name);
         }
         accounts.remove(name);
         DeleteOp op = new DeleteOp(name);
@@ -58,15 +61,15 @@ public class ServerState {
     }
 
     public void transfer(String from, String to, Integer amount) {
-        if (!accountExists(from) || !accountExists(to)) {
-            // TODO - THROW EXCEPTION
-            System.out.println("Account does not exist");
-            return;
+        if (!accountExists(from) && !accountExists(to)) {
+            throw new AccountDoesntExistException(from, to);
+        } else if (!accountExists(from)) {
+            throw new AccountDoesntExistException(from);
+        } else if (!accountExists(to)) {
+            throw new AccountDoesntExistException(to);
         }
         if (!accountHasBalance(from, amount)) {
-            // TODO - THROW EXCEPTION
-            System.out.println("Insufficient funds");
-            return;
+            throw new InsufficientFundsException(from);
         }
         updateAccountBalance(accounts.get(from), accounts.get(from).getBalance() - amount);
         updateAccountBalance(accounts.get(to), accounts.get(to).getBalance() + amount);
@@ -75,13 +78,10 @@ public class ServerState {
     }
 
     public int getAccountBalance(String name) {
-        int balance = 0;
         if (!accountExists(name)) {
-            // TODO - THROW EXCEPTION
-            System.out.println("Account does not exist");
-            return balance;
+            throw new AccountDoesntExistException(name);
         }
-    return accounts.get(name).getBalance();
+        return accounts.get(name).getBalance();
     }
 
     // User Interface Operations - Helper Methods
