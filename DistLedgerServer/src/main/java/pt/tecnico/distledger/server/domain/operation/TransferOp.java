@@ -30,7 +30,7 @@ public class TransferOp extends Operation {
 
     @Override
     public DistLedgerCommonDefinitions.Operation accept(Convertor convertor) {
-        return convertor.convertTransferTo(this);
+        return convertor.convert(this);
     }
 
 }

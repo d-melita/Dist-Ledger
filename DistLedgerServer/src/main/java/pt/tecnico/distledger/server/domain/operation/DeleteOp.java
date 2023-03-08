@@ -10,7 +10,7 @@ public class DeleteOp extends Operation {
 
     @Override
     public DistLedgerCommonDefinitions.Operation accept(Convertor convertor) {
-        return convertor.convertCreateOrDelete(this);
+        return convertor.convert(this);
     }
 
 }
