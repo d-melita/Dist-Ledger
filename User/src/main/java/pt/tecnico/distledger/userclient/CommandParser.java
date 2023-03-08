@@ -112,7 +112,7 @@ public class CommandParser {
         int balance = userService.balance(server, username).getValue();
         System.out.println("OK\n");
         if (balance > 0) {
-            System.out.println("Balance: " + balance);
+            System.out.println(balance);
         }
     }
 
