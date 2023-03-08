@@ -109,7 +109,7 @@ public class CommandParser {
         String server = split[1];
         String username = split[2];
 
-        int balance = userService.balance(server, username);
+        int balance = userService.balance(server, username).getValue();
         System.out.println("OK\n");
         if (balance > 0) {
             System.out.println("Balance: " + balance);
