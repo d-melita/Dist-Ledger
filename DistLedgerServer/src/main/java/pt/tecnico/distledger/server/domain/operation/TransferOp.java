@@ -29,13 +29,8 @@ public class TransferOp extends Operation {
     }
 
     @Override
-    public DistLedgerCommonDefinitions.Operation convertToProto() {
-        return pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.Operation.newBuilder()
-                .setType(getType())
-                .setUserId(getAccount())
-                .setDestUserId(getDestAccount())
-                .setAmount(getAmount())
-                .build();
+    public DistLedgerCommonDefinitions.Operation accept(Convertor convertor) {
+        return convertor.convert(this);
     }
 
 }

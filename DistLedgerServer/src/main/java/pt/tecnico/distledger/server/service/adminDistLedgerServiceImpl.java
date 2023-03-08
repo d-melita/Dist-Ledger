@@ -39,11 +39,12 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     @Override
     public void getLedgerState(getLedgerStateRequest request, StreamObserver<getLedgerStateResponse> responseObserver) {
         // get operations from ledger
+        Convertor convertor = new Convertor();
         List<Operation> operations = state.getLedger();
         List<DistLedgerCommonDefinitions.Operation> ops = new ArrayList<>();
 
         for (Operation op : operations) {
-            ops.add(op.convertToProto());
+            ops.add(op.accept(convertor));
         }
 
         LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(ops).build();

@@ -9,11 +9,8 @@ public class CreateOp extends Operation {
     }
 
     @Override
-    public DistLedgerCommonDefinitions.Operation convertToProto() {
-        return pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.Operation.newBuilder()
-                .setType(getType())
-                .setUserId(getAccount())
-                .build();
+    public DistLedgerCommonDefinitions.Operation accept(Convertor convertor) {
+        return convertor.convert(this);
     }
-
+        
 }
