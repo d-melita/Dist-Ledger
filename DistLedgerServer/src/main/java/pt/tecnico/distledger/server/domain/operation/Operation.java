@@ -27,6 +27,8 @@ public abstract class Operation {
         this.type = type;
     }
 
-    public abstract DistLedgerCommonDefinitions.Operation convertToProto();
+    public DistLedgerCommonDefinitions.Operation accept(Convertor convertor) {
+        throw new UnsupportedOperationException();
+    }
 
 }

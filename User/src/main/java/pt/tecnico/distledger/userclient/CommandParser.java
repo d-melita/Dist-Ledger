@@ -58,11 +58,13 @@ public class CommandParser {
 
                     default:
                         System.out.println("Unknown command: " + cmd);
+                        this.printUsage();
                         break;
                 }
             }
             catch (Exception e){
                 System.err.println(e.getMessage());
+                System.out.println();
             }
         }
     }
