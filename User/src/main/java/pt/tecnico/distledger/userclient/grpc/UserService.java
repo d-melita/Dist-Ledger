@@ -27,7 +27,8 @@ public class UserService {
     public void balance(String server, String username) {
         UserDistLedger.BalanceResponse response = stub.balance(UserDistLedger.BalanceRequest.newBuilder().setUserId(username).build());
         System.out.println("OK");
-        System.out.println(response.getAmount());
+        if (response.getAmount() != 0)
+            System.out.println(response.getAmount());
         System.out.println();
     }
 
