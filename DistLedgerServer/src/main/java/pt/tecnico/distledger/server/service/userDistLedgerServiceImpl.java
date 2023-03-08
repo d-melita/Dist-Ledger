@@ -22,14 +22,12 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             CreateAccountResponse response = CreateAccountResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (AccountAlreadyExistsException e) {
+        } catch (AccountAlreadyExistsException | ServerUnavailableException e) {
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-            return;
         } catch (Exception e) {
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
-            return;
         }
     }
 
@@ -40,18 +38,12 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             DeleteAccountResponse response = DeleteAccountResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (AccountDoesntExistException e) {
+        } catch (AccountDoesntExistException | ServerUnavailableException | AccountHasBalanceException e) {
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-            return;
-        } catch (AccountHasBalanceException e) {
-            responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-            return;
         } catch (Exception e) {
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
-            return;
         }
     }
 
@@ -59,17 +51,15 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
     public void balance(BalanceRequest request, StreamObserver<BalanceResponse> responseObserver) {
         try {
             int balance = state.getAccountBalance(request.getUserId());
-            BalanceResponse response = BalanceResponse.newBuilder().setAmount(balance).build();
+            BalanceResponse response = BalanceResponse.newBuilder().setValue(balance).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (AccountDoesntExistException e) {
+        } catch (AccountDoesntExistException | ServerUnavailableException e) {
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-            return;
         } catch (Exception e) {
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
-            return;
         }
     }
 
@@ -80,18 +70,12 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             TransferToResponse response = TransferToResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (AccountDoesntExistException e) {
+        } catch (AccountDoesntExistException | InsufficientFundsException | ServerUnavailableException e) {
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-            return;
-        } catch (InsufficientFundsException e) {
-            responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
-            return;
         } catch (Exception e) {
             responseObserver
                     .onError(Status.INVALID_ARGUMENT.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
-            return;
         }
     }
 }
