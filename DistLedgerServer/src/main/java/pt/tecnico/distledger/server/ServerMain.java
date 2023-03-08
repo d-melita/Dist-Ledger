@@ -30,9 +30,6 @@ public class ServerMain {
 
         final int port = Integer.parseInt(args[0]);
 
-        // Set logger
-        Logger.setlogger();
-
         ServerState state = new ServerState();
 
         final BindableService userImpl = new userDistLedgerServiceImpl(state);
