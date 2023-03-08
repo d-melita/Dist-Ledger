@@ -64,37 +64,37 @@ public class CommandParser {
     }
 
     private void activate(String line){
-        /*String[] split = line.split(SPACE);
+        String[] split = line.split(SPACE);
 
         if (split.length != 2){
             this.printUsage();
             return;
         }
-        String server = split[1];*/
+        String server = split[1];
 
         adminService.activate();
     }
 
     private void deactivate(String line){
-        /*String[] split = line.split(SPACE);
+        String[] split = line.split(SPACE);
 
         if (split.length != 2){
             this.printUsage();
             return;
         }
-        String server = split[1];*/
+        String server = split[1];
 
         adminService.deactivate();
     }
 
     private void dump(String line){
-        /*String[] split = line.split(SPACE);
+        String[] split = line.split(SPACE);
 
         if (split.length != 2){
             this.printUsage();
             return;
         }
-        String server = split[1];*/
+        String server = split[1];
 
         adminService.dump();
     }

@@ -57,6 +57,7 @@ public class CommandParser {
                         break;
 
                     default:
+                        System.out.println("Unknown command: " + cmd);
                         break;
                 }
             }
