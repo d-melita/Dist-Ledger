@@ -19,7 +19,7 @@ public class AdminService {
             stub.activate(ActivateRequest.getDefaultInstance());
             System.out.println("OK\n");
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
         }
     }
 
@@ -28,7 +28,7 @@ public class AdminService {
             stub.deactivate(DeactivateRequest.getDefaultInstance());
             System.out.println("OK\n");
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
         }
     }
 
@@ -39,7 +39,7 @@ public class AdminService {
             System.out.println(response.toString());
             System.out.println();
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
         }
     }
 
