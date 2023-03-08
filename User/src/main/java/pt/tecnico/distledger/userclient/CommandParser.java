@@ -81,6 +81,7 @@ public class CommandParser {
         String username = split[2];
 
         userService.createAccount(server, username);
+        System.out.println("OK\n");
     }
 
     private void deleteAccount(String line){
@@ -94,6 +95,7 @@ public class CommandParser {
         String username = split[2];
 
         userService.deleteAccount(server, username);
+        System.out.println("OK\n");
     }
 
 
@@ -107,7 +109,11 @@ public class CommandParser {
         String server = split[1];
         String username = split[2];
 
-        userService.balance(server, username);
+        int balance = userService.balance(server, username);
+        System.out.println("OK\n");
+        if (balance > 0) {
+            System.out.println("Balance: " + balance);
+        }
     }
 
     private void transferTo(String line){
