@@ -1,7 +1,6 @@
 package pt.tecnico.distledger.adminclient;
 
 import pt.tecnico.distledger.adminclient.grpc.AdminService;
-import pt.tecnico.distledger.utils.Logger;
 
 public class AdminClientMain {
     public static void main(String[] args) {
@@ -23,9 +22,6 @@ public class AdminClientMain {
 
         final String host = args[0];
         final int port = Integer.parseInt(args[1]);
-
-        // Set logger
-        Logger.setlogger();
 
         CommandParser parser = new CommandParser(new AdminService(host, port));
         parser.parseInput();

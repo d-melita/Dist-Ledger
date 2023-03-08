@@ -1,4 +1,5 @@
 package pt.tecnico.distledger.server.domain.operation;
+
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.OperationType;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 
@@ -16,4 +17,11 @@ public class CreateOp extends Operation {
                 .build();
     }
 
+    @Override
+    public String toString() {
+        return "CreateOp{" +
+                "account='" + getAccount() + '\'' +
+                ", type=" + getType() +
+                '}';
+    }
 }

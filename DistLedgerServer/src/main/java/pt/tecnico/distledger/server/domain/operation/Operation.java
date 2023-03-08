@@ -1,4 +1,5 @@
 package pt.tecnico.distledger.server.domain.operation;
+
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.*;
 
@@ -29,4 +30,11 @@ public abstract class Operation {
 
     public abstract DistLedgerCommonDefinitions.Operation convertToProto();
 
+    @Override
+    public String toString() {
+        return "Operation{" +
+                "account='" + account + '\'' +
+                ", type=" + type +
+                '}';
+    }
 }

@@ -1,4 +1,5 @@
 package pt.tecnico.distledger.server.domain.operation;
+
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.OperationType;
 
@@ -38,4 +39,13 @@ public class TransferOp extends Operation {
                 .build();
     }
 
+    @Override
+    public String toString() {
+        return "TransferOp{" +
+                "account='" + getAccount() + '\'' +
+                ", destAccount='" + destAccount + '\'' +
+                ", amount=" + amount +
+                ", type=" + getType() +
+                '}';
+    }
 }

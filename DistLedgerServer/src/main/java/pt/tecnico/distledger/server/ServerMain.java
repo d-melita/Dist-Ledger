@@ -36,13 +36,16 @@ public class ServerMain {
         ServerState state = new ServerState();
 
         final BindableService userImpl = new userDistLedgerServiceImpl(state);
+        Logger.log("userImpl created");
         final BindableService adminImpl = new adminDistLedgerServiceImpl(state);
+        Logger.log("adminImpl created");
 
         // Create a new server to listen on port
         Server server = ServerBuilder.forPort(port)
                 .addService(adminImpl)
                 .addService(userImpl)
                 .build();
+        Logger.log("Server created");
 
         // Start the server
         server.start();
