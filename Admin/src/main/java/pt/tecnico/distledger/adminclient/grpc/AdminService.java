@@ -36,8 +36,7 @@ public class AdminService {
         try {
             getLedgerStateResponse response = stub.getLedgerState(getLedgerStateRequest.getDefaultInstance());
             System.out.println("OK");
-            System.out.println(response.toString());
-            System.out.println();
+            System.out.println(response.toString() + "\n");
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
         }
