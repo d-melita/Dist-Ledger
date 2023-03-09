@@ -7,11 +7,13 @@ import pt.tecnico.distledger.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ServerState {
-    private ArrayList<Operation> ledger;
+    private List<Operation> ledger;
 
-    HashMap<String, Integer> accounts;
+    Map<String, Integer> accounts;
 
     private boolean isActive = true;
 
@@ -106,7 +108,7 @@ public class ServerState {
         this.isActive = false;
     }
 
-    public ArrayList<Operation> getLedger() {
+    public List<Operation> getLedger() {
         Logger.log("Admin getting ledger");
         return this.ledger;
     }
