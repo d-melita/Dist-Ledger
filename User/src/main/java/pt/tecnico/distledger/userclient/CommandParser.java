@@ -129,6 +129,7 @@ public class CommandParser {
         Integer amount = Integer.valueOf(split[4]);
 
         userService.transferTo(server, from, dest, amount);
+        System.out.println("OK\n");
     }
 
     private void printUsage() {
