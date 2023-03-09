@@ -37,7 +37,6 @@ public class DistLedgerServerIT {
                 .addService(userService)
                 .build();
         this.server.start();
-        System.out.println("Server started, listening on " + PORT);
         this.channel = ManagedChannelBuilder.forAddress("localhost", PORT)
                 .usePlaintext()
                 .build();
@@ -54,13 +53,13 @@ public class DistLedgerServerIT {
 
     @Test
     public void testCreateUser() {
-        assertEquals(0, userStub.balance(BalanceRequest.newBuilder().setUserId(userId1).build()).getAmount());
+        assertEquals(0, userStub.balance(BalanceRequest.newBuilder().setUserId(userId1).build()).getValue());
     }
 
     @Test
     public void testTransferToUserFromBroker() {
         userStub.transferTo(TransferToRequest.newBuilder().setAccountFrom("broker").setAccountTo(userId1).setAmount(100).build());
-        assertEquals(100, userStub.balance(BalanceRequest.newBuilder().setUserId(userId1).build()).getAmount());
+        assertEquals(100, userStub.balance(BalanceRequest.newBuilder().setUserId(userId1).build()).getValue());
     }
 
     @Test
@@ -69,8 +68,8 @@ public class DistLedgerServerIT {
         userStub.createAccount(CreateAccountRequest.newBuilder().setUserId(userId2).build());
         userStub.transferTo(TransferToRequest.newBuilder().setAccountFrom("broker").setAccountTo(userId1).setAmount(100).build());
         userStub.transferTo(TransferToRequest.newBuilder().setAccountFrom(userId1).setAccountTo(userId2).setAmount(40).build());
-        assertEquals(40, userStub.balance(BalanceRequest.newBuilder().setUserId(userId2).build()).getAmount());
-        assertEquals(60, userStub.balance(BalanceRequest.newBuilder().setUserId(userId1).build()).getAmount());
+        assertEquals(40, userStub.balance(BalanceRequest.newBuilder().setUserId(userId2).build()).getValue());
+        assertEquals(60, userStub.balance(BalanceRequest.newBuilder().setUserId(userId1).build()).getValue());
     }
 
     @Test
