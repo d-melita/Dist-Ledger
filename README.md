@@ -8,22 +8,21 @@ Distributed Systems Project 2022/2023
 
 ### Code Identification
 
-In all source files (namely in the *groupId*s of the POMs), replace __GXX__ with your group identifier. The group
-identifier consists of either A or T followed by the group number - always two digits. This change is important for 
+In all source files (namely in the *groupId*s of the POMs), replace **GXX** with your group identifier. The group
+identifier consists of either A or T followed by the group number - always two digits. This change is important for
 code dependency management, to ensure your code runs using the correct components and not someone else's.
 
 ### Team Members
 
-
-| Number | Name              | User                             | Email                               |
-|--------|-------------------|----------------------------------|-------------------------------------|
-| 99202  | Diogo Melita | <https://github.com/d-melita>   | <mailto:diogo.melita@tecnico.ulisboa.pt>   |
-| 99209  | Diogo Cardoso       | <https://github.com/D-Card>     | <mailto:diogocardoso67@tecnico.ulisboa.pt>     |
-| 99335  | Tiago Silva     | <https://github.com/trvds> | <mailto:tiagovsilva@tecnico.ulisboa.pt> |
+| Number | Name          | User                          | Email                                      |
+| ------ | ------------- | ----------------------------- | ------------------------------------------ |
+| 99202  | Diogo Melita  | <https://github.com/d-melita> | <mailto:diogo.melita@tecnico.ulisboa.pt>   |
+| 99209  | Diogo Cardoso | <https://github.com/D-Card>   | <mailto:diogocardoso67@tecnico.ulisboa.pt> |
+| 99335  | Tiago Silva   | <https://github.com/trvds>    | <mailto:tiagovsilva@tecnico.ulisboa.pt>    |
 
 ## Getting Started
 
-The overall system is made up of several modules. The main server is the _DistLedgerServer_. The clients are the _User_ 
+The overall system is made up of several modules. The main server is the _DistLedgerServer_. The clients are the _User_
 and the _Admin_. The definition of messages and services is in the _Contract_. The future naming server
 is the _NamingServer_.
 
@@ -49,7 +48,35 @@ To compile and install all modules:
 mvn clean install
 ```
 
+### Compile and Run the Server and Clients
+
+To compile the server and clients:
+
+```s
+mvn compile
+```
+
+To run the server or clients navigate to the folder of each module and run:
+
+- For the server:
+
+```s
+    mvn exec:java -Dexec.args="<port>"
+```
+
+- For the admin and user clients:
+
+```s
+    mvn exec:java -Dexec.args="<host> <port>"
+```
+
+### To Run the Server in debug mode
+
+```s
+mvn exec:java -Ddebug
+```
+
 ## Built With
 
-* [Maven](https://maven.apache.org/) - Build and dependency management tool;
-* [gRPC](https://grpc.io/) - RPC framework.
+- [Maven](https://maven.apache.org/) - Build and dependency management tool;
+- [gRPC](https://grpc.io/) - RPC framework.
