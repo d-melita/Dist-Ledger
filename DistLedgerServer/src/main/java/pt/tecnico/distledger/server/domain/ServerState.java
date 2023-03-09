@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ServerState {
-    private List<Operation> ledger;
+    private final List<Operation> ledger;
 
     Map<String, Integer> accounts;
 
@@ -36,7 +36,9 @@ public class ServerState {
     // User Interface Operations
     public synchronized void createAccount(String name) {
         Logger.log("Creating account " + name);
-        if (!isActive) throw new ServerUnavailableException();
+        if (!isActive) {
+            throw new ServerUnavailableException();
+        }
         if (accountExists(name)) {
             throw new AccountAlreadyExistsException(name);
         }
@@ -47,7 +49,9 @@ public class ServerState {
 
     public synchronized void deleteAccount(String name) {
         Logger.log("Deleting account " + name);
-        if (!isActive) throw new ServerUnavailableException();
+        if (!isActive) {
+            throw new ServerUnavailableException();
+        }
         if (!accountExists(name)) {
             throw new AccountDoesntExistException(name);
         }
@@ -61,12 +65,16 @@ public class ServerState {
 
     public synchronized void transfer(String from, String to, Integer amount) {
         Logger.log("Transferring " + amount + " from " + from + " to " + to);
-        if (!isActive) throw new ServerUnavailableException();
+        if (!isActive) {
+            throw new ServerUnavailableException();
+        }
         if (!accountExists(from) && !accountExists(to)) {
             throw new AccountDoesntExistException(from, to);
-        } else if (!accountExists(from)) {
+        }
+        if (!accountExists(from)) {
             throw new AccountDoesntExistException(from);
-        } else if (!accountExists(to)) {
+        }
+        if (!accountExists(to)) {
             throw new AccountDoesntExistException(to);
         }
         if (!accountHasBalance(from, amount)) {
@@ -80,7 +88,9 @@ public class ServerState {
 
     public synchronized Integer getAccountBalance(String name) {
         Logger.log("Getting balance of account " + name);
-        if (!isActive) throw new ServerUnavailableException();
+        if (!isActive) {
+            throw new ServerUnavailableException();
+        }
         if (!accountExists(name)) {
             throw new AccountDoesntExistException(name);
         }
