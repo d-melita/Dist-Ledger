@@ -5,10 +5,10 @@ import pt.tecnico.distledger.server.domain.operation.*;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.OperationType;
 import pt.tecnico.distledger.utils.Logger;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ServerState {
     private List<Operation> ledger;
@@ -19,22 +19,22 @@ public class ServerState {
 
     public ServerState() {
         Logger.log("Initializing ServerState");
-        this.ledger = new ArrayList<>();
-        this.accounts = new HashMap<>();
+        this.ledger = new CopyOnWriteArrayList<>();
+        this.accounts = new ConcurrentHashMap<>();
         Logger.log("Creating Broker Account");
         this.accounts.put("broker", 1000);
         Logger.log("Broker Account created");
         Logger.log("ServerState initialized");
     }
 
-    public void addOperation(Operation op) {
+    public synchronized void addOperation(Operation op) {
         Logger.log("Adding operation " + op.toString() + " to ledger");
         this.ledger.add(op);
         Logger.log("Operation added");
     }
 
     // User Interface Operations
-    public void createAccount(String name) {
+    public synchronized void createAccount(String name) {
         Logger.log("Creating account " + name);
         if (!isActive) throw new ServerUnavailableException();
         if (accountExists(name)) {
@@ -45,7 +45,7 @@ public class ServerState {
         Logger.log("Account " + name + " created");
     }
 
-    public void deleteAccount(String name) {
+    public synchronized void deleteAccount(String name) {
         Logger.log("Deleting account " + name);
         if (!isActive) throw new ServerUnavailableException();
         if (!accountExists(name)) {
@@ -59,7 +59,7 @@ public class ServerState {
         Logger.log("Account " + name + " deleted");
     }
 
-    public void transfer(String from, String to, Integer amount) {
+    public synchronized void transfer(String from, String to, Integer amount) {
         Logger.log("Transferring " + amount + " from " + from + " to " + to);
         if (!isActive) throw new ServerUnavailableException();
         if (!accountExists(from) && !accountExists(to)) {
@@ -78,21 +78,20 @@ public class ServerState {
         Logger.log("Transfer completed");
     }
 
-    public Integer getAccountBalance(String name) {
+    public synchronized Integer getAccountBalance(String name) {
         Logger.log("Getting balance of account " + name);
         if (!isActive) throw new ServerUnavailableException();
-        int balance = 0;
         if (!accountExists(name)) {
             throw new AccountDoesntExistException(name);
         }
         return accounts.get(name);
     }
 
-    public boolean accountExists(String name) {
+    public synchronized boolean accountExists(String name) {
         return accounts.get(name) != null;
     }
 
-    public boolean accountHasBalance(String name, int amount) {
+    public synchronized boolean accountHasBalance(String name, int amount) {
         return accounts.get(name) >= amount;
     }
 
@@ -108,7 +107,7 @@ public class ServerState {
         this.isActive = false;
     }
 
-    public List<Operation> getLedger() {
+    public synchronized List<Operation> getLedger() {
         Logger.log("Admin getting ledger");
         return this.ledger;
     }
@@ -120,5 +119,4 @@ public class ServerState {
                 ", accounts=" + accounts +
                 '}';
     }
-
 }
