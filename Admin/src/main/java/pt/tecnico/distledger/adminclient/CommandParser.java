@@ -1,9 +1,6 @@
 package pt.tecnico.distledger.adminclient;
 
 import pt.tecnico.distledger.adminclient.grpc.AdminService;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import pt.ulisboa.tecnico.distledger.contract.admin.AdminDistLedger.*;
 
 import java.util.Scanner;
 
@@ -72,7 +69,12 @@ public class CommandParser {
         }
         String server = split[1];
 
-        adminService.activate();
+        try {
+            adminService.activate();
+            System.out.println("OK\n");
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+        }
     }
 
     private void deactivate(String line){
@@ -83,8 +85,12 @@ public class CommandParser {
             return;
         }
         String server = split[1];
-
-        adminService.deactivate();
+        try {
+            adminService.deactivate();
+            System.out.println("OK\n");
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+        }
     }
 
     private void dump(String line){
@@ -96,7 +102,12 @@ public class CommandParser {
         }
         String server = split[1];
 
-        adminService.dump();
+        try {
+            System.out.println(adminService.dump());
+            System.out.println("OK\n");
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+        }
     }
 
     @SuppressWarnings("unused")

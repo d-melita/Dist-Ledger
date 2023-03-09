@@ -15,31 +15,15 @@ public class AdminService {
     }
 
     public void activate() {
-        try {
-            stub.activate(ActivateRequest.getDefaultInstance());
-            System.out.println("OK\n");
-        } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
-        }
+        stub.activate(ActivateRequest.getDefaultInstance());
     }
 
     public void deactivate() {
-        try {
-            stub.deactivate(DeactivateRequest.getDefaultInstance());
-            System.out.println("OK\n");
-        } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
-        }
+        stub.deactivate(DeactivateRequest.getDefaultInstance());
     }
 
-    public void dump() {
-        try {
-            getLedgerStateResponse response = stub.getLedgerState(getLedgerStateRequest.getDefaultInstance());
-            System.out.println("OK");
-            System.out.println(response.toString() + "\n");
-        } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
-        }
+    public getLedgerStateResponse dump() {
+        return stub.getLedgerState(getLedgerStateRequest.getDefaultInstance());
     }
 
 }
