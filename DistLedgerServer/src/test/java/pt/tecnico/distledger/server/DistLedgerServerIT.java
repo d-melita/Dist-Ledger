@@ -97,4 +97,15 @@ public class DistLedgerServerIT {
         userStub.transferTo(TransferToRequest.newBuilder().setAccountFrom("broker").setAccountTo(userId1).setAmount(10).build());
         assertThrows(StatusRuntimeException.class, () -> userStub.transferTo(TransferToRequest.newBuilder().setAccountFrom(userId1).setAccountTo(userId2).setAmount(40).build()));
     }
+
+    @Test
+    public void transferToInvalidAccount() {
+        userStub.transferTo(TransferToRequest.newBuilder().setAccountFrom("broker").setAccountTo(userId1).setAmount(100).build());
+        assertThrows(StatusRuntimeException.class, () -> userStub.transferTo(TransferToRequest.newBuilder().setAccountFrom(userId1).setAccountTo("user2").setAmount(40).build()));
+    }
+
+    @Test
+    public void deleteInvalidAccount() {
+        assertThrows(StatusRuntimeException.class, () -> userStub.deleteAccount(DeleteAccountRequest.newBuilder().setUserId("user2").build()));
+    }
 }
