@@ -26,10 +26,10 @@ public class DistLedgerServerIT {
     AdminServiceGrpc.AdminServiceBlockingStub adminStub;
     UserServiceGrpc.UserServiceBlockingStub userStub;
     String userId1 = "user1";
+    ServerState state = new ServerState();
 
     @BeforeEach
     public void setUp() throws IOException{
-        ServerState state = new ServerState();
         BindableService adminService = new adminDistLedgerServiceImpl(state);
         BindableService userService = new userDistLedgerServiceImpl(state);
         this.server = ServerBuilder.forPort(PORT)
@@ -106,5 +106,34 @@ public class DistLedgerServerIT {
     @Test
     public void deleteInvalidAccount() {
         assertThrows(StatusRuntimeException.class, () -> userStub.deleteAccount(DeleteAccountRequest.newBuilder().setUserId("user2").build()));
+    }
+
+    @Test
+    public void deactivateServer() {
+        adminStub.deactivate(DeactivateRequest.getDefaultInstance());
+        assertEquals(false, state.isActive());
+    }
+
+    @Test
+    public void activateServer() {
+        adminStub.deactivate(DeactivateRequest.getDefaultInstance()); // deactivate server first because it starts active by default
+        adminStub.activate(ActivateRequest.getDefaultInstance());
+        assertEquals(true, state.isActive());
+    }
+
+    @Test
+    public void serverUnavailabe() {
+        adminStub.deactivate(DeactivateRequest.getDefaultInstance());
+        assertThrows(StatusRuntimeException.class, () -> userStub.createAccount(CreateAccountRequest.newBuilder().setUserId("user2").build()));
+    }
+
+    @Test
+    public void getLedgerState(){
+        String userId2 = "user2";
+        userStub.transferTo(TransferToRequest.newBuilder().setAccountFrom("broker").setAccountTo(userId1).setAmount(100).build());
+        userStub.createAccount(CreateAccountRequest.newBuilder().setUserId(userId2).build());
+        userStub.transferTo(TransferToRequest.newBuilder().setAccountFrom(userId1).setAccountTo(userId2).setAmount(40).build());
+        String expectedLedgerState = "ledgerState {\n  ledger {\n    type: OP_CREATE_ACCOUNT\n    userId: \"user1\"\n  }\n  ledger {\n    type: OP_TRANSFER_TO\n    userId: \"broker\"\n    destUserId: \"user1\"\n    amount: 100\n  }\n  ledger {\n    type: OP_CREATE_ACCOUNT\n    userId: \"user2\"\n  }\n  ledger {\n    type: OP_TRANSFER_TO\n    userId: \"user1\"\n    destUserId: \"user2\"\n    amount: 40\n  }\n}\n";
+        assertEquals(expectedLedgerState, adminStub.getLedgerState(getLedgerStateRequest.getDefaultInstance()).toString());
     }
 }

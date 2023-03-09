@@ -117,6 +117,10 @@ public class ServerState {
         this.isActive = false;
     }
 
+    public synchronized boolean isActive() {
+        return this.isActive;
+    }
+
     public synchronized List<Operation> getLedger() {
         Logger.log("Admin getting ledger");
         return this.ledger;
