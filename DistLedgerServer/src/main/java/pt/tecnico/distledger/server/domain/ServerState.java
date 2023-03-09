@@ -107,12 +107,12 @@ public class ServerState {
 
     // Admin interface operations
 
-    public void activate() {
+    public synchronized void activate() {
         Logger.log("Admin activating server");
         this.isActive = true;
     }
 
-    public void deactivate() {
+    public synchronized void deactivate() {
         Logger.log("Admin deactivating server");
         this.isActive = false;
     }
@@ -123,7 +123,7 @@ public class ServerState {
     }
 
     @Override
-    public String toString() {
+    public synchronized String toString() {
         return "ServerState{" +
                 "ledger=" + ledger +
                 ", accounts=" + accounts +
