@@ -70,10 +70,32 @@ To run the server or clients navigate to the folder of each module and run:
     mvn exec:java -Dexec.args="<host> <port>"
 ```
 
-### To Run the Server in debug mode
+You can also run the server and clients without arguments, in which case the default values will be used (see pom.xml for the default values):
+
+```s
+mvn exec:java
+```
+
+### Run the Server in debug mode
+
+To run the server in debug mode you can use the flag:
 
 ```s
 mvn exec:java -Ddebug
+```
+
+You can also add the port and host arguments:
+
+```s
+mvn exec:java -Ddebug -Dexec.args="<host> <port>"
+```
+
+### Run the tests for the server and clients
+
+To run the tests for the server and clients:
+
+```s
+mvn clean verify
 ```
 
 ## Built With
