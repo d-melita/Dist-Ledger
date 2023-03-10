@@ -1,6 +1,7 @@
 package pt.tecnico.distledger.adminclient;
 
 import pt.tecnico.distledger.adminclient.grpc.AdminService;
+import pt.ulisboa.tecnico.distledger.contract.admin.AdminDistLedger.getLedgerStateResponse;
 
 import java.util.Scanner;
 
@@ -54,6 +55,8 @@ public class CommandParser {
                     break;
 
                 default:
+                    System.out.println("Unknown command: " + cmd);
+                    this.printUsage();
                     break;
             }
 
@@ -71,7 +74,7 @@ public class CommandParser {
 
         try {
             adminService.activate();
-            System.out.println("OK\n");
+            System.out.println("OK\n\n");
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
         }
@@ -103,8 +106,9 @@ public class CommandParser {
         String server = split[1];
 
         try {
-            System.out.println(adminService.dump());
-            System.out.println("OK\n");
+            getLedgerStateResponse response = adminService.dump();
+            System.out.println("OK");
+            System.out.println(response);
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
         }

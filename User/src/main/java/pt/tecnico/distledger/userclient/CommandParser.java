@@ -110,10 +110,11 @@ public class CommandParser {
         String username = split[2];
 
         int balance = userService.balance(server, username).getValue();
-        System.out.println("OK\n");
+        System.out.println("OK");
         if (balance > 0) {
             System.out.println(balance);
         }
+        System.out.println();
     }
 
     private void transferTo(String line){
