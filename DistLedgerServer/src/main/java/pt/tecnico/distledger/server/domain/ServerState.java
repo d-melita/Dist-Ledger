@@ -52,6 +52,9 @@ public class ServerState {
         if (!isActive) {
             throw new ServerUnavailableException();
         }
+        if (name.equals("broker")) {
+            throw new DeleteBrokerAccountException(name);
+        }
         if (!accountExists(name)) {
             throw new AccountDoesntExistException(name);
         }
@@ -67,6 +70,9 @@ public class ServerState {
         Logger.log("Transferring " + amount + " from " + from + " to " + to);
         if (!isActive) {
             throw new ServerUnavailableException();
+        }
+        if (amount <= 0) {
+            throw new InvalidAmountException();
         }
         if (!accountExists(from) && !accountExists(to)) {
             throw new AccountDoesntExistException(from, to);

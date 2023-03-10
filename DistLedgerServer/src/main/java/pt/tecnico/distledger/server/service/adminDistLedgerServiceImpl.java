@@ -30,7 +30,7 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
             responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription("Server activation failed").asRuntimeException());
+                    .onError(Status.UNKNOWN.withDescription("Server activation failed").asRuntimeException());
         }
     }
 
@@ -43,7 +43,7 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
             responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription("Server deactivation failed").asRuntimeException());
+                    .onError(Status.UNKNOWN.withDescription("Server deactivation failed").asRuntimeException());
         }
     }
 
@@ -65,7 +65,7 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
         responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription("Getting ledger failed").asRuntimeException());
+                    .onError(Status.UNKNOWN.withDescription("Getting ledger failed").asRuntimeException());
         }
     }
 }

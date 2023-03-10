@@ -22,12 +22,14 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             CreateAccountResponse response = CreateAccountResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (AccountAlreadyExistsException | ServerUnavailableException e) {
+        } catch (AccountAlreadyExistsException e) {
             responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+                    .onError(Status.ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
+        } catch (ServerUnavailableException e) {
+            responseObserver.onError(Status.UNAVAILABLE.asRuntimeException());
         } catch (Exception e) {
             responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
+                    .onError(Status.UNKNOWN.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
         }
     }
 
@@ -38,12 +40,18 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             DeleteAccountResponse response = DeleteAccountResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (AccountDoesntExistException | ServerUnavailableException | AccountHasBalanceException e) {
+        } catch (AccountDoesntExistException  e) {
             responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+                    .onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        } catch (DeleteBrokerAccountException e) {
+            responseObserver.onError(Status.PERMISSION_DENIED.withDescription(e.getMessage()).asRuntimeException());
+        }  catch (ServerUnavailableException e) {
+            responseObserver.onError(Status.UNAVAILABLE.asRuntimeException());
+        }  catch (AccountHasBalanceException e) {
+            responseObserver.onError(Status.FAILED_PRECONDITION.withDescription(e.getMessage()).asRuntimeException());
         } catch (Exception e) {
             responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
+                    .onError(Status.UNKNOWN.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
         }
     }
 
@@ -54,12 +62,14 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             BalanceResponse response = BalanceResponse.newBuilder().setValue(balance).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (AccountDoesntExistException | ServerUnavailableException e) {
+        } catch (AccountDoesntExistException e) {
             responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+                    .onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        } catch (ServerUnavailableException e) {
+            responseObserver.onError(Status.UNAVAILABLE.asRuntimeException());
         } catch (Exception e) {
             responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
+                    .onError(Status.UNKNOWN.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
         }
     }
 
@@ -70,12 +80,20 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             TransferToResponse response = TransferToResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (AccountDoesntExistException | InsufficientFundsException | ServerUnavailableException e) {
+        } catch (AccountDoesntExistException e) {
             responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+                    .onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        } catch (InsufficientFundsException e) {
+            responseObserver
+                    .onError(Status.FAILED_PRECONDITION.withDescription(e.getMessage()).asRuntimeException());
+        } catch (ServerUnavailableException e) {
+            responseObserver
+                    .onError(Status.UNAVAILABLE.asRuntimeException());
+        } catch (InvalidAmountException e) {
+            responseObserver.onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         } catch (Exception e) {
             responseObserver
-                    .onError(Status.INVALID_ARGUMENT.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
+                    .onError(Status.UNKNOWN.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
         }
     }
 }
