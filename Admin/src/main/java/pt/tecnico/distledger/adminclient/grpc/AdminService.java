@@ -5,13 +5,14 @@ import io.grpc.ManagedChannelBuilder;
 import pt.ulisboa.tecnico.distledger.contract.admin.AdminServiceGrpc;
 import pt.ulisboa.tecnico.distledger.contract.admin.AdminDistLedger.*;
 
-public class AdminService {
+public class AdminService implements AutoCloseable {
 
     private final AdminServiceGrpc.AdminServiceBlockingStub stub;
+    private final ManagedChannel channel;
 
     public AdminService(String host, int port) {
-        ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
-        this.stub = AdminServiceGrpc.newBlockingStub(channel);
+        this.channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
+        this.stub = AdminServiceGrpc.newBlockingStub(this.channel);
     }
 
     public void activate() {
@@ -26,4 +27,8 @@ public class AdminService {
         return stub.getLedgerState(getLedgerStateRequest.getDefaultInstance());
     }
 
+    @Override
+    public void close() {
+        this.channel.shutdownNow();
+    }
 }
