@@ -29,8 +29,9 @@ message DeleteRequest {
 
 message DeleteResponse {}
 
-service AdminService {
-  rpc Register (RegisterRequest) returns (RegisterResponse);
-  rpc Lookup (LookupRequest) returns (LookupResponse);
-  rpc Delete (DeleteRequest) returns (DeleteResponse);
+
+service NamingServerService {
+  rpc registerServer(RegisterRequest) returns (RegisterResponse);
+  rpc lookup(LookupRequest) returns (LookupResponse);
+  rpc deleteServer(DeleteRequest) returns (DeleteResponse);
 }
