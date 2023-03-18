@@ -73,7 +73,7 @@ public class CommandParser {
         String server = split[1];
 
         try {
-            adminService.activate();
+            adminService.activate(server);
             System.out.println("OK\n\n");
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
@@ -89,7 +89,7 @@ public class CommandParser {
         }
         String server = split[1];
         try {
-            adminService.deactivate();
+            adminService.deactivate(server);
             System.out.println("OK\n");
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
@@ -106,7 +106,7 @@ public class CommandParser {
         String server = split[1];
 
         try {
-            getLedgerStateResponse response = adminService.dump();
+            getLedgerStateResponse response = adminService.dump(server);
             System.out.println("OK");
             System.out.println(response);
         } catch (Exception e) {
