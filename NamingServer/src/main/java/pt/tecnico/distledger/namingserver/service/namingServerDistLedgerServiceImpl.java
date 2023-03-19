@@ -34,7 +34,12 @@ public class namingServerDistLedgerServiceImpl extends NamingServerServiceGrpc.N
     @Override
     public void lookup(LookupRequest request, StreamObserver<LookupResponse> responseObserver) {
         try {
-            List<String> hosts = namingServer.lookup(request.getService(), request.getQualifier());
+            List<String> hosts;
+            if (request.getQualifier().isEmpty()) {
+                hosts = namingServer.lookup(request.getService());
+            } else {
+                hosts = namingServer.lookup(request.getService(), request.getQualifier());
+            }
             LookupResponse.Builder response = LookupResponse.newBuilder();
             for (String host : hosts) {
                 response.addHosts(host);
