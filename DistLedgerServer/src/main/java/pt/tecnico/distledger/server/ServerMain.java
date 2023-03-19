@@ -8,8 +8,12 @@ import java.io.IOException;
 import pt.tecnico.distledger.utils.Logger;
 import pt.tecnico.distledger.server.domain.ServerState;
 import pt.tecnico.distledger.server.service.*;
+import pt.tecnico.distledger.server.grpc.NamingServerService;
 
 public class ServerMain {
+    private static final String LOCALHOST = "localhost";
+    private static final String SERVICE = "DistLedger";
+    private static final int NS_PORT = 5001;
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -29,8 +33,16 @@ public class ServerMain {
         }
 
         final int port = Integer.parseInt(args[0]);
-
-        ServerState state = new ServerState();
+        final String qualifier = args[1];
+        ServerState state = null;
+        try (var namingServerService = new NamingServerService(LOCALHOST, NS_PORT)) {
+            System.out.println(LOCALHOST + ":" + port);
+            state = namingServerService.connect(SERVICE, LOCALHOST + ":" + port, qualifier);
+        } catch (Exception e) {
+            System.out.println("Naming server not available");
+            System.out.println(e.getMessage());
+            System.exit(1);
+        }
 
         final BindableService userImpl = new userDistLedgerServiceImpl(state);
         Logger.log("userImpl created");
