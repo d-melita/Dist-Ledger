@@ -22,9 +22,9 @@ public class UserClientMain {
         }
 
         final String host = args[0];
-        final int port = Integer.parseInt(args[1]); // will be 5001, the naming server port
+        final int port = Integer.parseInt(args[1]);
 
-        try (var userService = new UserService(host, port)) {
+        try (var userService = new UserService(host, 5001)) {
             CommandParser parser = new CommandParser(userService);
             Logger.log("UserClientMain, Starting command parser");
             parser.parseInput();

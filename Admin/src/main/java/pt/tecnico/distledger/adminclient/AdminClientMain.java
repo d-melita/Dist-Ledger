@@ -24,7 +24,7 @@ public class AdminClientMain {
         final String host = args[0];
         final int port = Integer.parseInt(args[1]);
 
-        try (var adminService = new AdminService(host, port)) {
+        try (var adminService = new AdminService(host, 5001)) {
             CommandParser parser = new CommandParser(adminService);
             Logger.log("AdminClientMain, Starting command parser");
             parser.parseInput();

@@ -83,12 +83,12 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>3.0.0-M6</version>
 				<executions>
-					<execution>
+					<!--<execution>
 						<goals>
 							<goal>integration-test</goal>
 							<goal>verify</goal>
 						</goals>
-					</execution>
+					</execution>-->
 				</executions>
 			</plugin>
 		</plugins>

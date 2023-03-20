@@ -58,11 +58,13 @@ public class ServerMain {
         Logger.log("userImpl created");
         final BindableService adminImpl = new adminDistLedgerServiceImpl(state);
         Logger.log("adminImpl created");
+        final BindableService crossServerImpl = new CrossServerDistLedgerServiceImpl(state);
 
         // Create a new server to listen on port
         Server server = ServerBuilder.forPort(port)
                 .addService(adminImpl)
                 .addService(userImpl)
+                .addService(crossServerImpl)
                 .build();
         Logger.log("Server created");
 
