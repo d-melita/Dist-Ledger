@@ -35,10 +35,10 @@ public class ServerMain {
 
         final int port = Integer.parseInt(args[0]);
         final String qualifier = args[1];
+        String host_address = LOCALHOST + ":" + port;
 
         ServerState state = null;
         try (var namingServerService = new NamingServerService(LOCALHOST, NS_PORT)) {
-            System.out.println(LOCALHOST + ":" + port);
             if (namingServerService.lookup(SERVICE, qualifier).getHostsCount() == 0 && qualifier.equals("A")) {
                 state = new ServerState();
             } else if (qualifier.compareTo("B") == 0) {
@@ -47,7 +47,7 @@ public class ServerMain {
                 System.out.println("Invalid server qualifier");
                 System.exit(1);
             }
-            namingServerService.register(SERVICE, LOCALHOST + ":" + port, qualifier);
+            namingServerService.register(SERVICE, host_address, qualifier);
         } catch (Exception e) {
             System.out.println("Naming server not available");
             System.out.println(e.getMessage());
