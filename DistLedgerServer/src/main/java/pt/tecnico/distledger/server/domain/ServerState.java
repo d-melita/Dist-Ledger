@@ -1,6 +1,6 @@
 package pt.tecnico.distledger.server.domain;
 
-import pt.tecnico.distledger.server.exceptions.*;
+import pt.tecnico.distledger.server.domain.exceptions.*;
 import pt.tecnico.distledger.server.domain.operation.*;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.OperationType;
 import pt.tecnico.distledger.utils.Logger;
@@ -43,7 +43,7 @@ public class ServerState {
             throw new AccountAlreadyExistsException(name);
         }
         accounts.put(name, 0);
-        addOperation(new CreateOp(name, OperationType.OP_CREATE_ACCOUNT));
+        addOperation(new CreateOp(name));
         Logger.log("Account " + name + " created");
     }
 
@@ -62,7 +62,7 @@ public class ServerState {
             throw new AccountHasBalanceException(name);
         }
         accounts.remove(name);
-        addOperation(new DeleteOp(name, OperationType.OP_DELETE_ACCOUNT));
+        addOperation(new DeleteOp(name));
         Logger.log("Account " + name + " deleted");
     }
 
@@ -88,7 +88,7 @@ public class ServerState {
         }
         accounts.put(from, accounts.get(from) - amount);
         accounts.put(to, accounts.get(to) + amount);
-        addOperation(new TransferOp(from, to, amount, OperationType.OP_TRANSFER_TO));
+        addOperation(new TransferOp(from, to, amount));
         Logger.log("Transfer completed");
     }
 
@@ -127,9 +127,12 @@ public class ServerState {
         return this.isActive;
     }
 
-    public synchronized List<Operation> getLedger() {
+    public List<Operation> getLedger() {
         Logger.log("Admin getting ledger");
-        return this.ledger;
+        // create a copy of the ledger to avoid concurrent modification
+        List<Operation> ledgerCopy = new CopyOnWriteArrayList<>();
+        ledgerCopy.addAll(ledger);
+        return ledgerCopy;
     }
 
     @Override

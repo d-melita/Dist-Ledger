@@ -5,8 +5,8 @@ import pt.ulisboa.tecnico.distledger.contract.admin.AdminServiceGrpc;
 import pt.ulisboa.tecnico.distledger.contract.admin.AdminDistLedger.*;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.*;
-import pt.tecnico.distledger.server.domain.operation.*;
 import pt.tecnico.distledger.server.domain.operation.Operation;
+import pt.tecnico.distledger.server.Convertor;
 
 import java.util.ArrayList;
 import java.util.List;

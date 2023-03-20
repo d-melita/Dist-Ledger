@@ -1,4 +1,4 @@
-package pt.tecnico.distledger.server.exceptions;
+package pt.tecnico.distledger.server.domain.exceptions;
 
 import pt.tecnico.distledger.utils.Logger;
 

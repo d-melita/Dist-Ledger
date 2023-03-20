@@ -1,12 +1,12 @@
 package pt.tecnico.distledger.server.domain.operation;
 
-import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.OperationType;
+import pt.tecnico.distledger.server.Convertor;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 
 public class CreateOp extends Operation {
 
-    public CreateOp(String account, OperationType type) {
-        super(account, type);
+    public CreateOp(String account) {
+        super(account);
     }
 
     @Override
@@ -18,7 +18,6 @@ public class CreateOp extends Operation {
     public String toString() {
         return "CreateOp{" +
                 "account='" + getAccount() + '\'' +
-                ", type=" + getType() +
                 '}';
     }
 }

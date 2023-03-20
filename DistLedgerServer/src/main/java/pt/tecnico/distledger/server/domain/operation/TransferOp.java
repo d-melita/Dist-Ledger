@@ -1,14 +1,14 @@
 package pt.tecnico.distledger.server.domain.operation;
 
+import pt.tecnico.distledger.server.Convertor;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
-import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.OperationType;
 
 public class TransferOp extends Operation {
     private String destAccount;
     private int amount;
 
-    public TransferOp(String fromAccount, String destAccount, int amount, OperationType type) {
-        super(fromAccount, type);
+    public TransferOp(String fromAccount, String destAccount, int amount) {
+        super(fromAccount);
         this.destAccount = destAccount;
         this.amount = amount;
     }
@@ -40,7 +40,6 @@ public class TransferOp extends Operation {
                 "account='" + getAccount() + '\'' +
                 ", destAccount='" + destAccount + '\'' +
                 ", amount=" + amount +
-                ", type=" + getType() +
                 '}';
     }
 }
