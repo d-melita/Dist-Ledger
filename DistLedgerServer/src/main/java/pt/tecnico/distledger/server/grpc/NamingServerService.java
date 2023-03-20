@@ -4,8 +4,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import pt.ulisboa.tecnico.distledger.contract.namingserver.NamingServerServiceGrpc;
 import pt.ulisboa.tecnico.distledger.contract.namingserver.NamingServerDistLedger.*;
-import pt.tecnico.distledger.server.domain.ServerState;
-import pt.tecnico.distledger.server.domain.SecondaryServerState;
 
 public class NamingServerService implements AutoCloseable {
     private final NamingServerServiceGrpc.NamingServerServiceBlockingStub stub;
@@ -14,17 +12,6 @@ public class NamingServerService implements AutoCloseable {
     public NamingServerService(String host, int port) {
         channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
         stub = NamingServerServiceGrpc.newBlockingStub(channel);
-    }
-
-    public ServerState connect(String service, String host, String qualifier) {
-        ServerState state;
-        if (lookup(service, qualifier).getHostsCount() == 0) {
-            state = new ServerState();
-        } else {
-            state = new SecondaryServerState();
-        }
-        register(service, host, qualifier);
-        return state;
     }
 
     public void register(String service, String host, String qualifier) {

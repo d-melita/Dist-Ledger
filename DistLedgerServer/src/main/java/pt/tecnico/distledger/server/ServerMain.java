@@ -7,6 +7,7 @@ import io.grpc.ServerBuilder;
 import java.io.IOException;
 import pt.tecnico.distledger.utils.Logger;
 import pt.tecnico.distledger.server.domain.ServerState;
+import pt.tecnico.distledger.server.domain.SecondaryServerState;
 import pt.tecnico.distledger.server.service.*;
 import pt.tecnico.distledger.server.grpc.NamingServerService;
 
@@ -34,10 +35,19 @@ public class ServerMain {
 
         final int port = Integer.parseInt(args[0]);
         final String qualifier = args[1];
+
         ServerState state = null;
         try (var namingServerService = new NamingServerService(LOCALHOST, NS_PORT)) {
             System.out.println(LOCALHOST + ":" + port);
-            state = namingServerService.connect(SERVICE, LOCALHOST + ":" + port, qualifier);
+            if (namingServerService.lookup(SERVICE, qualifier).getHostsCount() == 0 && qualifier.equals("A")) {
+                state = new ServerState();
+            } else if (qualifier.compareTo("B") == 0) {
+                state = new SecondaryServerState();
+            } else {
+                System.out.println("Invalid server qualifier");
+                System.exit(1);
+            }
+            namingServerService.register(SERVICE, LOCALHOST + ":" + port, qualifier);
         } catch (Exception e) {
             System.out.println("Naming server not available");
             System.out.println(e.getMessage());
