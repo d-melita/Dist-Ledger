@@ -3,6 +3,7 @@ package pt.tecnico.distledger.userclient;
 import pt.tecnico.distledger.userclient.grpc.UserService;
 
 import java.util.Scanner;
+import pt.tecnico.distledger.utils.Logger;
 
 public class CommandParser {
 
@@ -80,6 +81,7 @@ public class CommandParser {
         String server = split[1];
         String username = split[2];
 
+        Logger.log("Creating account for user " + username + " on server " + server + "...");
         userService.createAccount(server, username);
         System.out.println("OK\n");
     }
@@ -94,6 +96,7 @@ public class CommandParser {
         String server = split[1];
         String username = split[2];
 
+        Logger.log("Deleting account for user " + username + " on server " + server + "...");
         userService.deleteAccount(server, username);
         System.out.println("OK\n");
     }
@@ -108,6 +111,8 @@ public class CommandParser {
         }
         String server = split[1];
         String username = split[2];
+
+        Logger.log("Getting balance for user " + username + " on server " + server + "...");
 
         int balance = userService.balance(server, username).getValue();
         System.out.println("OK");
@@ -129,6 +134,7 @@ public class CommandParser {
         String dest = split[3];
         Integer amount = Integer.valueOf(split[4]);
 
+        Logger.log("Transferring " + amount + " from user " + from + " to user " + dest + " on server " + server + "...");
         userService.transferTo(server, from, dest, amount);
         System.out.println("OK\n");
     }

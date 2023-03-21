@@ -1,6 +1,7 @@
 package pt.tecnico.distledger.userclient;
 
 import pt.tecnico.distledger.userclient.grpc.UserService;
+import pt.tecnico.distledger.utils.Logger;
 
 public class UserClientMain {
     public static void main(String[] args) {
@@ -25,6 +26,7 @@ public class UserClientMain {
 
         try (var userService = new UserService(host, port)) {
             CommandParser parser = new CommandParser(userService);
+            Logger.log("UserClientMain, Starting command parser");
             parser.parseInput();
         }
     }
