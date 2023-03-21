@@ -7,6 +7,8 @@ import pt.ulisboa.tecnico.distledger.contract.namingserver.NamingServerServiceGr
 import pt.ulisboa.tecnico.distledger.contract.namingserver.NamingServerDistLedger.*;
 import pt.ulisboa.tecnico.distledger.contract.user.UserServiceGrpc;
 
+import pt.tecnico.distledger.utils.Logger;
+
 public class UserService implements AutoCloseable {
 
     private final NamingServerServiceGrpc.NamingServerServiceBlockingStub stub;
@@ -38,7 +40,9 @@ public class UserService implements AutoCloseable {
             System.out.println("Server not found");
             return;
         }
-        sv_stub.createAccount(CreateAccountRequest.newBuilder().setUserId(username).build());
+        CreateAccountRequest request = CreateAccountRequest.newBuilder().setUserId(username).build();
+        Logger.log("Request is: " + request.toString());
+        sv_stub.createAccount(request);
     }
 
     public void deleteAccount(String server, String username) {
@@ -48,7 +52,9 @@ public class UserService implements AutoCloseable {
             System.out.println("Server not found");
             return;
         }
-        sv_stub.deleteAccount(DeleteAccountRequest.newBuilder().setUserId(username).build());
+        DeleteAccountRequest request = DeleteAccountRequest.newBuilder().setUserId(username).build();
+        Logger.log("Request is: " + request.toString());
+        sv_stub.deleteAccount(request);
     }
 
     public BalanceResponse balance(String server, String username) {
@@ -58,7 +64,9 @@ public class UserService implements AutoCloseable {
             System.out.println("Server not found");
             return null;
         }
-        return sv_stub.balance(BalanceRequest.newBuilder().setUserId(username).build());
+        BalanceRequest request = BalanceRequest.newBuilder().setUserId(username).build();
+        Logger.log("Request is: " + request.toString());
+        return sv_stub.balance(request);
     }
 
     public void transferTo(String server, String from, String dest, int amount) {

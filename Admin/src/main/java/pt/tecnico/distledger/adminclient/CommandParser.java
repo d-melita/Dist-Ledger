@@ -4,6 +4,7 @@ import pt.tecnico.distledger.adminclient.grpc.AdminService;
 import pt.ulisboa.tecnico.distledger.contract.admin.AdminDistLedger.getLedgerStateResponse;
 
 import java.util.Scanner;
+import pt.tecnico.distledger.utils.Logger;
 
 public class CommandParser {
 
@@ -72,6 +73,8 @@ public class CommandParser {
         }
         String server = split[1];
 
+        Logger.log("Activating server " + server);
+
         try {
             adminService.activate(server);
             System.out.println("OK\n\n");
@@ -88,6 +91,8 @@ public class CommandParser {
             return;
         }
         String server = split[1];
+
+        Logger.log("Deactivating server " + server);
         try {
             adminService.deactivate(server);
             System.out.println("OK\n");
@@ -104,6 +109,8 @@ public class CommandParser {
             return;
         }
         String server = split[1];
+
+        Logger.log("Getting ledger state from server " + server);
 
         try {
             getLedgerStateResponse response = adminService.dump(server);
