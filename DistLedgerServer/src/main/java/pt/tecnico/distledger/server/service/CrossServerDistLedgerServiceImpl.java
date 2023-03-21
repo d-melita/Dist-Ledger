@@ -22,25 +22,29 @@ public class CrossServerDistLedgerServiceImpl extends DistLedgerCrossServerServi
 
     @Override
     public void propagateState(PropagateStateRequest request, StreamObserver<PropagateStateResponse> responseObserver) {
-        List<Operation> newLedger = new ArrayList<>();
-        for (DistLedgerCommonDefinitions.Operation op : request.getState().getLedgerList()){
-            switch (op.getType()) {
-                case OP_CREATE_ACCOUNT:
-                    newLedger.add(new CreateOp(op.getUserId()));
-                    break;
-                case OP_DELETE_ACCOUNT:
-                    newLedger.add(new DeleteOp(op.getUserId()));
-                    break;
-                case OP_TRANSFER_TO:
-                    newLedger.add(new TransferOp(op.getUserId(), op.getDestUserId(), op.getAmount()));
-                    break;
-                default:
-                    responseObserver.onError(Status.INVALID_ARGUMENT.withDescription("Invalid operation type").asRuntimeException());
-                    return;
+        try {
+            List<Operation> newLedger = new ArrayList<>();
+            for (DistLedgerCommonDefinitions.Operation op : request.getState().getLedgerList()){
+                switch (op.getType()) {
+                    case OP_CREATE_ACCOUNT:
+                        newLedger.add(new CreateOp(op.getUserId()));
+                        break;
+                    case OP_DELETE_ACCOUNT:
+                        newLedger.add(new DeleteOp(op.getUserId()));
+                        break;
+                    case OP_TRANSFER_TO:
+                        newLedger.add(new TransferOp(op.getUserId(), op.getDestUserId(), op.getAmount()));
+                        break;
+                    default:
+                        responseObserver.onError(Status.INVALID_ARGUMENT.withDescription("Invalid operation type").asRuntimeException());
+                        return;
+                }
             }
+            state.setLedger(newLedger);
+            responseObserver.onNext(PropagateStateResponse.newBuilder().build());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            responseObserver.onError(Status.UNKNOWN.withDescription("Failed to propagate state").asRuntimeException());
         }
-        state.setLedger(newLedger);
-        responseObserver.onNext(PropagateStateResponse.newBuilder().build());
-        responseObserver.onCompleted();
     }
 }

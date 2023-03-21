@@ -47,7 +47,11 @@ public class ServerState {
         String host = server.split(":")[0];
         int port = Integer.parseInt(server.split(":")[1]);
         Logger.log("Connecting to " + host + ":" + port);
-        crossServerService.propagateState(host, port, ledgerCopy);
+        try {
+            crossServerService.propagateState(host, port, ledgerCopy);
+        } catch (Exception e) {
+            Logger.log("Error:" + e.getMessage());
+        }
     }
 
     // User Interface Operations
@@ -59,15 +63,7 @@ public class ServerState {
         if (accountExists(name)) {
             throw new AccountAlreadyExistsException(name);
         }
-
-        try {
-            propagateState(new CreateOp(name));
-        }
-        catch (Exception e) {
-            Logger.log("Error propagating state");
-            throw new ServerUnavailableException();
-        }
-
+        propagateState(new CreateOp(name));
         accounts.put(name, 0);
         addOperation(new CreateOp(name));
         Logger.log("Account " + name + " created");
@@ -87,15 +83,7 @@ public class ServerState {
         if (getAccountBalance(name) > 0) {
             throw new AccountHasBalanceException(name);
         }
-
-        try {
-            propagateState(new DeleteOp(name));
-        }
-        catch (Exception e) {
-            Logger.log("Error propagating state");
-            throw new ServerUnavailableException();
-        }
-        
+        propagateState(new DeleteOp(name));
         accounts.remove(name);
         addOperation(new DeleteOp(name));
         Logger.log("Account " + name + " deleted");
@@ -121,15 +109,7 @@ public class ServerState {
         if (!accountHasBalance(from, amount)) {
             throw new InsufficientFundsException(from);
         }
-
-        try {
-            propagateState(new TransferOp(from, to, amount));
-        }
-        catch (Exception e) {
-            Logger.log("Error propagating state");
-            throw new ServerUnavailableException();
-        }
-
+        propagateState(new TransferOp(from, to, amount));
         accounts.put(from, accounts.get(from) - amount);
         accounts.put(to, accounts.get(to) + amount);
         addOperation(new TransferOp(from, to, amount));
