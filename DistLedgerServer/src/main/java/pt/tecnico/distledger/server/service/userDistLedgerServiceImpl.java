@@ -9,6 +9,7 @@ import pt.tecnico.distledger.server.domain.exceptions.*;
 
 public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBase {
     private final String DEFAULT_ERROR_MESSAGE = "Operation Failed";
+    private final String INVALID_ARGUMENT_MESSAGE = "Invalid arguments";
     private ServerState state;
 
     public userDistLedgerServiceImpl(ServerState state) {
@@ -17,6 +18,11 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
 
     @Override
     public void createAccount(CreateAccountRequest request, StreamObserver<CreateAccountResponse> responseObserver) {
+        if (request.getUserId().isEmpty()) {
+            responseObserver.onError(Status.INVALID_ARGUMENT.withDescription(
+                    INVALID_ARGUMENT_MESSAGE).asRuntimeException());
+            return;
+        }
         try {
             state.createAccount(request.getUserId());
             CreateAccountResponse response = CreateAccountResponse.newBuilder().build();
@@ -35,19 +41,24 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
 
     @Override
     public void deleteAccount(DeleteAccountRequest request, StreamObserver<DeleteAccountResponse> responseObserver) {
+        if (request.getUserId().isEmpty()) {
+            responseObserver.onError(Status.INVALID_ARGUMENT.withDescription(
+                    INVALID_ARGUMENT_MESSAGE).asRuntimeException());
+            return;
+        }
         try {
             state.deleteAccount(request.getUserId());
             DeleteAccountResponse response = DeleteAccountResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (AccountDoesntExistException  e) {
+        } catch (AccountDoesntExistException e) {
             responseObserver
                     .onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         } catch (DeleteBrokerAccountException e) {
             responseObserver.onError(Status.PERMISSION_DENIED.withDescription(e.getMessage()).asRuntimeException());
-        }  catch (ServerUnavailableException e) {
+        } catch (ServerUnavailableException e) {
             responseObserver.onError(Status.UNAVAILABLE.asRuntimeException());
-        }  catch (AccountHasBalanceException e) {
+        } catch (AccountHasBalanceException e) {
             responseObserver.onError(Status.FAILED_PRECONDITION.withDescription(e.getMessage()).asRuntimeException());
         } catch (Exception e) {
             responseObserver
@@ -57,6 +68,11 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
 
     @Override
     public void balance(BalanceRequest request, StreamObserver<BalanceResponse> responseObserver) {
+        if (request.getUserId().isEmpty()) {
+            responseObserver.onError(Status.INVALID_ARGUMENT.withDescription(
+                    INVALID_ARGUMENT_MESSAGE).asRuntimeException());
+            return;
+        }
         try {
             int balance = state.getAccountBalance(request.getUserId());
             BalanceResponse response = BalanceResponse.newBuilder().setValue(balance).build();
@@ -75,6 +91,11 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
 
     @Override
     public void transferTo(TransferToRequest request, StreamObserver<TransferToResponse> responseObserver) {
+        if (request.getAccountFrom().isEmpty() || request.getAccountTo().isEmpty()) {
+            responseObserver.onError(Status.INVALID_ARGUMENT.withDescription(
+                    INVALID_ARGUMENT_MESSAGE).asRuntimeException());
+            return;
+        }
         try {
             state.transfer(request.getAccountFrom(), request.getAccountTo(), request.getAmount());
             TransferToResponse response = TransferToResponse.newBuilder().build();
