@@ -1,6 +1,6 @@
 package pt.tecnico.distledger.server.domain;
 
-import pt.tecnico.distledger.server.exceptions.SecondaryServerWriteOperationException;
+import pt.tecnico.distledger.server.domain.exceptions.SecondaryServerWriteOperationException;
 
 public class SecondaryServerState extends ServerState {
 

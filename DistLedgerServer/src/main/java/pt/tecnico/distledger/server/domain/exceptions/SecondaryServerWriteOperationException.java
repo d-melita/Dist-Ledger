@@ -1,4 +1,4 @@
-package pt.tecnico.distledger.server.exceptions;
+package pt.tecnico.distledger.server.domain.exceptions;
 
 public class SecondaryServerWriteOperationException extends RuntimeException {
     public SecondaryServerWriteOperationException() {
