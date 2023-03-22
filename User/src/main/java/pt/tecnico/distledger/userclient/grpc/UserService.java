@@ -12,23 +12,22 @@ import java.util.Map;
 
 public class UserService implements AutoCloseable {
 
-    private final NamingServerServiceGrpc.NamingServerServiceBlockingStub namingServerStub;
-    private final ManagedChannel namingServerChannel;
-    private final String service = "DistLedger";
+    private String service;
+    private NamingServerService namingServerService;
     private Map<String, ManagedChannel> serverChannels;
     private Map<String, UserServiceGrpc.UserServiceBlockingStub> serverStubs;
 
-    public UserService(String host, int port) {
-        this.namingServerChannel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
-        this.namingServerStub = NamingServerServiceGrpc.newBlockingStub(this.namingServerChannel);
+    public UserService(String service, String ns_host, int ns_port) {
+        this.service = service;
+        this.namingServerService = new NamingServerService(ns_host, ns_port);
         this.serverChannels = new HashMap<>();
         this.serverStubs = new HashMap<>();
     }
 
-    private void cacheStub(String server){
+    private void cacheStub(String server) {
         if (this.serverStubs.get(server) != null && this.serverChannels.get(server) != null)
             return;
-        LookupResponse response = namingServerStub.lookup(LookupRequest.newBuilder().setService(service).setQualifier(server).build());
+        LookupResponse response = this.namingServerService.lookup(this.service, server);
         if (response.getHostsCount() == 0)
             throw new RuntimeException("Server not found");
         String sv[] = response.getHosts(0).split(":");
@@ -38,7 +37,7 @@ public class UserService implements AutoCloseable {
         this.serverStubs.put(server, UserServiceGrpc.newBlockingStub(serverChannels.get(server)));
     }
 
-    private void invalidateAndCacheStub(String server){
+    private void invalidateAndCacheStub(String server) {
         this.serverChannels.remove(server);
         this.serverStubs.remove(server);
         cacheStub(server);
@@ -77,16 +76,18 @@ public class UserService implements AutoCloseable {
     public void transferTo(String server, String from, String dest, int amount) {
         try {
             cacheStub(server);
-            this.serverStubs.get(server).transferTo(TransferToRequest.newBuilder().setAccountFrom(from).setAccountTo(dest).setAmount(amount).build());
+            this.serverStubs.get(server).transferTo(
+                    TransferToRequest.newBuilder().setAccountFrom(from).setAccountTo(dest).setAmount(amount).build());
         } catch (Exception e) {
             invalidateAndCacheStub(server);
-            this.serverStubs.get(server).transferTo(TransferToRequest.newBuilder().setAccountFrom(from).setAccountTo(dest).setAmount(amount).build());
+            this.serverStubs.get(server).transferTo(
+                    TransferToRequest.newBuilder().setAccountFrom(from).setAccountTo(dest).setAmount(amount).build());
         }
     }
 
     @Override
     public void close() {
-        this.namingServerChannel.shutdownNow();
         this.serverChannels.forEach((k, v) -> v.shutdownNow());
+        this.namingServerService.close();
     }
 }
