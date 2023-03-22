@@ -18,7 +18,7 @@ public class NamingServer {
         Logger.log("NamingServer initialized");
     }
 
-    public void register(String service, String host, String qualifier) {
+    public synchronized void register(String service, String host, String qualifier) {
         Logger.log("Register operation: " + service + " " + host + " " + qualifier);
         if (services.containsKey(service)) {
             Logger.log("Service already exists");
@@ -29,14 +29,14 @@ public class NamingServer {
         }
     }
 
-    public void addService(String service, String host, String qualifier) {
+    public synchronized void addService(String service, String host, String qualifier) {
         Logger.log("Adding new service " + service);
         ServiceEntry serviceEntry = new ServiceEntry(service);
         serviceEntry.addServer(host, qualifier);
         services.put(service, serviceEntry);
     }
 
-    public List<String> lookup(String service, String qualifier) {
+    public synchronized List<String> lookup(String service, String qualifier) {
         Logger.log("Lookup operation: " + service + " " + qualifier);
         if (services.containsKey(service)) {
             ServiceEntry serviceEntry = services.get(service);
@@ -45,7 +45,7 @@ public class NamingServer {
         return new ArrayList<String>();
     }
 
-    public List<String> lookup(String service) {
+    public synchronized List<String> lookup(String service) {
         Logger.log("Lookup operation: " + service);
         if (services.containsKey(service)) {
             ServiceEntry serviceEntry = services.get(service);
@@ -54,7 +54,7 @@ public class NamingServer {
         return new ArrayList<String>();
     }
 
-    public void delete(String service, String host) {
+    public synchronized void delete(String service, String host) {
         Logger.log("Delete operation: " + service + " " + host);
         if (services.containsKey(service)) {
             ServiceEntry serviceEntry = services.get(service);

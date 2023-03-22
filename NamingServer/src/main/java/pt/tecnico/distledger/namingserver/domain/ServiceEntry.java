@@ -21,11 +21,7 @@ public class ServiceEntry {
         return service;
     }
 
-    public List<ServerEntry> getServers() {
-        return servers;
-    }
-
-    public ServerEntry getServer(String host) {
+    public synchronized ServerEntry getServer(String host) {
         for (ServerEntry server : servers) {
             if (server.getHost().equals(host)) {
                 return server;
@@ -42,7 +38,7 @@ public class ServiceEntry {
         servers.remove(server);
     }
 
-    public void addServer(String host, String qualifier) {
+    public synchronized void addServer(String host, String qualifier) {
         Logger.log("Adding server " + host + " to service " + service);
         if (this.getServer(host) != null) {
             throw new RegistryFailedException(host);
@@ -50,7 +46,7 @@ public class ServiceEntry {
         this.addServer(new ServerEntry(host, qualifier));
     }
 
-    public List<String> lookupServer(String qualifier) {
+    public synchronized List<String> lookupServer(String qualifier) {
         Logger.log("Looking up servers with qualifier " + qualifier + " in service " + service);
         List<String> hosts = new ArrayList<String>();
         for (ServerEntry server : servers) {
@@ -61,7 +57,7 @@ public class ServiceEntry {
         return hosts;
     }
 
-    public List<String> lookupServer() {
+    public synchronized List<String> lookupServer() {
         Logger.log("Looking up servers in service " + service);
         List<String> hosts = new ArrayList<String>();
         for (ServerEntry server : servers) {
@@ -70,7 +66,7 @@ public class ServiceEntry {
         return hosts;
     }
 
-    public void removeServer(String host) {
+    public synchronized void removeServer(String host) {
         Logger.log("Removing server " + host + " from service " + service);
         ServerEntry server = this.getServer(host);
         if (server != null) {
