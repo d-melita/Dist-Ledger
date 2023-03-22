@@ -42,6 +42,7 @@ public class ServerState {
 
     public synchronized void propagateState(Operation op) {
         List<Operation> ledgerCopy = getLedger();
+        ledgerCopy.add(op);
         Logger.log("Propagating state to other servers");
         String server = namingServerService.lookup("DistLedger", "B").getHosts(0);
         String host = server.split(":")[0];
