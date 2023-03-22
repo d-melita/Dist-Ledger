@@ -28,7 +28,7 @@ public class AdminService implements AutoCloseable {
     private void cacheStub(String server){
         if (this.serverStubs.get(server) != null && this.serverChannels.get(server) != null)
             return;
-        LookupResponse response = namingServerStub.lookup(LookupRequest.newBuilder().setService(service).build());
+        LookupResponse response = namingServerStub.lookup(LookupRequest.newBuilder().setService(service).setQualifier(server).build());
         if (response.getHostsCount() == 0)
             throw new RuntimeException("Server not found");
         String sv[] = response.getHosts(0).split(":");
