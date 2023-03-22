@@ -28,12 +28,16 @@ public class CrossServerDistLedgerServiceImpl extends DistLedgerCrossServerServi
                 switch (op.getType()) {
                     case OP_CREATE_ACCOUNT:
                         newLedger.add(new CreateOp(op.getUserId()));
+                        state.addAccount(op.getUserId());
                         break;
                     case OP_DELETE_ACCOUNT:
                         newLedger.add(new DeleteOp(op.getUserId()));
+                        state.removeAccount(op.getUserId());
                         break;
                     case OP_TRANSFER_TO:
                         newLedger.add(new TransferOp(op.getUserId(), op.getDestUserId(), op.getAmount()));
+                        state.updateAccount(op.getUserId(), -op.getAmount());
+                        state.updateAccount(op.getDestUserId(), op.getAmount());
                         break;
                     default:
                         responseObserver.onError(Status.INVALID_ARGUMENT.withDescription("Invalid operation type").asRuntimeException());

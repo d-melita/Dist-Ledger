@@ -65,7 +65,7 @@ public class ServerState {
             throw new AccountAlreadyExistsException(name);
         }
         propagateState(new CreateOp(name));
-        accounts.put(name, 0);
+        addAccount(name);
         addOperation(new CreateOp(name));
         Logger.log("Account " + name + " created");
     }
@@ -85,7 +85,7 @@ public class ServerState {
             throw new AccountHasBalanceException(name);
         }
         propagateState(new DeleteOp(name));
-        accounts.remove(name);
+        removeAccount(name);
         addOperation(new DeleteOp(name));
         Logger.log("Account " + name + " deleted");
     }
@@ -111,8 +111,8 @@ public class ServerState {
             throw new InsufficientFundsException(from);
         }
         propagateState(new TransferOp(from, to, amount));
-        accounts.put(from, accounts.get(from) - amount);
-        accounts.put(to, accounts.get(to) + amount);
+        updateAccount(from, -amount);
+        updateAccount(to, amount);
         addOperation(new TransferOp(from, to, amount));
         Logger.log("Transfer completed");
     }
@@ -164,6 +164,18 @@ public class ServerState {
         Logger.log("Admin setting ledger");
         this.ledger.clear();
         this.ledger.addAll(ledger);
+    }
+
+    public synchronized void addAccount(String name) {
+        this.accounts.put(name, 0);
+    }
+
+    public synchronized void removeAccount(String name) {
+        this.accounts.remove(name);
+    }
+
+    public synchronized void updateAccount(String name, int amount) {
+        accounts.put(name, accounts.get(name) + amount);
     }
 
     @Override
