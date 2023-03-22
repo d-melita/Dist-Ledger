@@ -19,7 +19,9 @@ public class NamingServer {
     }
 
     public void register(String service, String host, String qualifier) {
+        Logger.log("Register operation: " + service + " " + host + " " + qualifier);
         if (services.containsKey(service)) {
+            Logger.log("Service already exists");
             ServiceEntry serviceEntry = services.get(service);
             serviceEntry.addServer(host, qualifier);
         } else {
@@ -28,12 +30,14 @@ public class NamingServer {
     }
 
     public void addService(String service, String host, String qualifier) {
+        Logger.log("Adding new service " + service);
         ServiceEntry serviceEntry = new ServiceEntry(service);
         serviceEntry.addServer(host, qualifier);
         services.put(service, serviceEntry);
     }
 
     public List<String> lookup(String service, String qualifier) {
+        Logger.log("Lookup operation: " + service + " " + qualifier);
         if (services.containsKey(service)) {
             ServiceEntry serviceEntry = services.get(service);
             return serviceEntry.lookupServer(qualifier);
@@ -42,6 +46,7 @@ public class NamingServer {
     }
 
     public List<String> lookup(String service) {
+        Logger.log("Lookup operation: " + service);
         if (services.containsKey(service)) {
             ServiceEntry serviceEntry = services.get(service);
             return serviceEntry.lookupServer();
@@ -50,6 +55,7 @@ public class NamingServer {
     }
 
     public void delete(String service, String host) {
+        Logger.log("Delete operation: " + service + " " + host);
         if (services.containsKey(service)) {
             ServiceEntry serviceEntry = services.get(service);
             serviceEntry.removeServer(host);

@@ -43,6 +43,7 @@ public class ServiceEntry {
     }
 
     public void addServer(String host, String qualifier) {
+        Logger.log("Adding server " + host + " to service " + service);
         if (this.getServer(host) != null) {
             throw new RegistryFailedException(host);
         }
@@ -50,6 +51,7 @@ public class ServiceEntry {
     }
 
     public List<String> lookupServer(String qualifier) {
+        Logger.log("Looking up servers with qualifier " + qualifier + " in service " + service);
         List<String> hosts = new ArrayList<String>();
         for (ServerEntry server : servers) {
             if (server.getQualifier().equals(qualifier)) {
@@ -60,6 +62,7 @@ public class ServiceEntry {
     }
 
     public List<String> lookupServer() {
+        Logger.log("Looking up servers in service " + service);
         List<String> hosts = new ArrayList<String>();
         for (ServerEntry server : servers) {
             hosts.add(server.getHost());
@@ -68,6 +71,7 @@ public class ServiceEntry {
     }
 
     public void removeServer(String host) {
+        Logger.log("Removing server " + host + " from service " + service);
         ServerEntry server = this.getServer(host);
         if (server != null) {
             this.removeServer(server);
