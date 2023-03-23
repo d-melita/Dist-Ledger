@@ -5,13 +5,18 @@ import io.grpc.ManagedChannelBuilder;
 import pt.ulisboa.tecnico.distledger.contract.namingserver.NamingServerServiceGrpc;
 import pt.ulisboa.tecnico.distledger.contract.namingserver.NamingServerDistLedger.*;
 
-public class NamingServerService implements AutoCloseable {
+public class NamingServerService{
     private final NamingServerServiceGrpc.NamingServerServiceBlockingStub stub;
     private final ManagedChannel channel;
+
 
     public NamingServerService(String host, int port) {
         channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
         stub = NamingServerServiceGrpc.newBlockingStub(channel);
+    }
+
+    public ManagedChannel getChannel() {
+        return channel;
     }
 
     public void register(String service, String host, String qualifier) {
@@ -29,10 +34,5 @@ public class NamingServerService implements AutoCloseable {
     public void unregister(String service, String host) {
         DeleteRequest request = DeleteRequest.newBuilder().setService(service).setHost(host).build();
         stub.deleteServer(request);
-    }
-
-    @Override
-    public void close() {
-        channel.shutdown();
     }
 }
