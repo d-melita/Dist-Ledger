@@ -28,14 +28,12 @@ public class CrossServerService implements AutoCloseable {
     public void propagateState(List<Operation> ledger) {
         Convertor convertor = new Convertor();
         List<DistLedgerCommonDefinitions.Operation> ops = new ArrayList<>();
-        LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(ops).build();
 
         for (Operation op : ledger) {
             ops.add(op.accept(convertor));
         }
-
+        LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(ops).build();
         PropagateStateRequest request = PropagateStateRequest.newBuilder().setState(ledgerState).build();
-
         LookupResponse response = namingServerService.lookup(service, SECONDARY_SERVER_QUALIFIER);
 
         if (response.getHostsCount() == 0) {
