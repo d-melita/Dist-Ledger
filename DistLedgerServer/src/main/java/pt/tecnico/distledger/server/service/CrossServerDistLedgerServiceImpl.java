@@ -10,10 +10,13 @@ import pt.ulisboa.tecnico.distledger.contract.distledgerserver.DistLedgerCrossSe
 import pt.ulisboa.tecnico.distledger.contract.distledgerserver.CrossServerDistLedger.*;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 
+import pt.tecnico.distledger.utils.Logger;
+
 import io.grpc.stub.StreamObserver;
 
-public class CrossServerDistLedgerServiceImpl extends DistLedgerCrossServerServiceGrpc.DistLedgerCrossServerServiceImplBase {
-    
+public class CrossServerDistLedgerServiceImpl
+        extends DistLedgerCrossServerServiceGrpc.DistLedgerCrossServerServiceImplBase {
+
     private ServerState state;
 
     public CrossServerDistLedgerServiceImpl(ServerState state) {
@@ -22,21 +25,27 @@ public class CrossServerDistLedgerServiceImpl extends DistLedgerCrossServerServi
 
     @Override
     public void propagateState(PropagateStateRequest request, StreamObserver<PropagateStateResponse> responseObserver) {
+        Logger.log("Received propagate state request");
         try {
             List<Operation> newLedger = new ArrayList<>();
-            for (DistLedgerCommonDefinitions.Operation op : request.getState().getLedgerList()){
+            for (DistLedgerCommonDefinitions.Operation op : request.getState().getLedgerList()) {
                 switch (op.getType()) {
                     case OP_CREATE_ACCOUNT:
                         newLedger.add(new CreateOp(op.getUserId()));
+                        state.addAccount(op.getUserId());
                         break;
                     case OP_DELETE_ACCOUNT:
                         newLedger.add(new DeleteOp(op.getUserId()));
+                        state.removeAccount(op.getUserId());
                         break;
                     case OP_TRANSFER_TO:
                         newLedger.add(new TransferOp(op.getUserId(), op.getDestUserId(), op.getAmount()));
+                        state.updateAccount(op.getUserId(), -op.getAmount());
+                        state.updateAccount(op.getDestUserId(), op.getAmount());
                         break;
                     default:
-                        responseObserver.onError(Status.INVALID_ARGUMENT.withDescription("Invalid operation type").asRuntimeException());
+                        responseObserver.onError(
+                                Status.INVALID_ARGUMENT.withDescription("Invalid operation type").asRuntimeException());
                         return;
                 }
             }

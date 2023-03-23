@@ -40,9 +40,9 @@ public class ServerMain {
         ServerState state = null;
         try (var namingServerService = new NamingServerService(LOCALHOST, NS_PORT)) {
             if (namingServerService.lookup(SERVICE, qualifier).getHostsCount() == 0 && qualifier.equals("A")) {
-                state = new ServerState();
+                state = new ServerState(SERVICE, LOCALHOST, NS_PORT);
             } else if (qualifier.compareTo("B") == 0) {
-                state = new SecondaryServerState();
+                state = new SecondaryServerState(SERVICE, LOCALHOST, NS_PORT);
             } else {
                 System.out.println("Invalid server qualifier");
                 System.exit(1);
