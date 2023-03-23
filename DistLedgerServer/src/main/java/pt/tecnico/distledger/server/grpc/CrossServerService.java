@@ -18,13 +18,11 @@ public class CrossServerService {
     public CrossServerService() {
     }
 
-    public void propagateState(List<Operation> ledger, List<String> hosts) {
-        Convertor convertor = new Convertor();
+    public void propagateState(Operation op, List<String> hosts) {
+        Convertor convertor = new Convertor();  
         List<DistLedgerCommonDefinitions.Operation> ops = new ArrayList<>();
-
-        for (Operation op : ledger) {
-            ops.add(op.accept(convertor));
-        }
+        ops.add(op.accept(convertor));
+        
         LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(ops).build();
         PropagateStateRequest request = PropagateStateRequest.newBuilder().setState(ledgerState).build();
 

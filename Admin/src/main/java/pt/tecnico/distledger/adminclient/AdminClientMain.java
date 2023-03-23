@@ -10,6 +10,8 @@ public class AdminClientMain {
 
     public static void main(String[] args) {
 
+        System.out.println(AdminClientMain.class.getSimpleName());
+
         if (args.length != 0) {
             System.err.println("Usage: mvn exec:java");
             return;

@@ -32,7 +32,11 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             responseObserver
                     .onError(Status.ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());
         } catch (ServerUnavailableException e) {
-            responseObserver.onError(Status.UNAVAILABLE.asRuntimeException());
+            responseObserver
+                    .onError(Status.UNAVAILABLE.asRuntimeException());
+        } catch (SecondaryServerWriteOperationException e) {
+            responseObserver
+                    .onError(Status.UNAVAILABLE.withDescription(e.getMessage()).asRuntimeException());
         } catch (Exception e) {
             responseObserver
                     .onError(Status.UNKNOWN.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());

@@ -43,12 +43,10 @@ public class ServerState {
     }
 
     public synchronized void propagateState(Operation op) {
-        List<Operation> ledgerCopy = getLedger();
-        ledgerCopy.add(op);
         Logger.log("Propagating state to other servers");
         try {
             List<String> hosts = namingServerService.lookup(SERVICE, SECONDARY_QUALIFIER).getHostsList();
-            crossServerService.propagateState(ledgerCopy, hosts);
+            crossServerService.propagateState(op, hosts);
         } catch (Exception e) {
             Logger.log("Error:" + e.getMessage());
         }
