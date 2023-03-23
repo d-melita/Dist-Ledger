@@ -10,6 +10,11 @@ public class AdminClientMain {
 
     public static void main(String[] args) {
 
+        if (args.length != 0) {
+            System.err.println("Usage: mvn exec:java");
+            return;
+        }
+
         try (var adminService = new AdminService(SERVICE, NS_HOST, NS_PORT)) {
             CommandParser parser = new CommandParser(adminService);
             Logger.log("AdminClientMain, Starting command parser");

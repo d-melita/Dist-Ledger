@@ -11,6 +11,11 @@ public class UserClientMain {
     public static void main(String[] args) {
         System.out.println(UserClientMain.class.getSimpleName());
 
+        if (args.length != 0) {
+            System.err.println("Usage: mvn exec:java");
+            return;
+        }
+
         try (var userService = new UserService(SERVICE, NS_HOST, NS_PORT)) {
             CommandParser parser = new CommandParser(userService);
             Logger.log("UserClientMain, Starting command parser");
