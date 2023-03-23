@@ -5,6 +5,7 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
 import java.io.IOException;
+
 import pt.tecnico.distledger.utils.Logger;
 import pt.tecnico.distledger.server.domain.ServerState;
 import pt.tecnico.distledger.server.domain.SecondaryServerState;
@@ -15,6 +16,7 @@ public class ServerMain {
     private static final String LOCALHOST = "localhost";
     private static final String SERVICE = "DistLedger";
     private static final int NS_PORT = 5001;
+    private static NamingServerService namingServerService = new NamingServerService(LOCALHOST, NS_PORT);
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -38,11 +40,11 @@ public class ServerMain {
         String host_address = LOCALHOST + ":" + port;
 
         ServerState state = null;
-        try (var namingServerService = new NamingServerService(LOCALHOST, NS_PORT)) {
+        try {
             if (namingServerService.lookup(SERVICE, qualifier).getHostsCount() == 0 && qualifier.equals("A")) {
-                state = new ServerState(SERVICE, LOCALHOST, NS_PORT);
+                state = new ServerState(SERVICE, LOCALHOST, NS_PORT, namingServerService);
             } else if (qualifier.compareTo("B") == 0) {
-                state = new SecondaryServerState(SERVICE, LOCALHOST, NS_PORT);
+                state = new SecondaryServerState(SERVICE, LOCALHOST, NS_PORT, namingServerService);
             } else {
                 System.out.println("Invalid server qualifier");
                 System.exit(1);
@@ -73,7 +75,15 @@ public class ServerMain {
 
         // Server threads are running in the background.
         System.out.println("Server started");
-
+        
+        // Shutdown hook
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("\nServer shut down");
+            namingServerService.unregister(SERVICE, host_address);
+            namingServerService.getChannel().shutdown();
+        }
+        ));
+        
         // Do not exit the main thread. Wait until server is terminated.
         server.awaitTermination();
     }
