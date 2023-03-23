@@ -3,7 +3,6 @@ package pt.tecnico.distledger.server.domain;
 import pt.tecnico.distledger.server.domain.exceptions.*;
 import pt.tecnico.distledger.server.domain.operation.*;
 import pt.tecnico.distledger.server.grpc.CrossServerService;
-import pt.tecnico.distledger.server.grpc.NamingServerService;
 import pt.tecnico.distledger.utils.Logger;
 
 import java.util.List;
@@ -18,20 +17,17 @@ public class ServerState {
 
     private boolean isActive = true;
 
-    private NamingServerService namingServerService;
-
     private final CrossServerService crossServerService;
 
-    public ServerState() {
+    public ServerState(String service, String ns_host, int ns_port) {
         Logger.log("Initializing ServerState");
         this.ledger = new CopyOnWriteArrayList<>();
         this.accounts = new ConcurrentHashMap<>();
         Logger.log("Creating Broker Account");
         this.accounts.put("broker", 1000);
         Logger.log("Broker Account created");
+        this.crossServerService = new CrossServerService(service, ns_host, ns_port);
         Logger.log("ServerState initialized");
-        this.namingServerService = new NamingServerService("localhost", 5001);
-        this.crossServerService = new CrossServerService();
     }
 
     public synchronized void addOperation(Operation op) {
@@ -44,12 +40,8 @@ public class ServerState {
         List<Operation> ledgerCopy = getLedger();
         ledgerCopy.add(op);
         Logger.log("Propagating state to other servers");
-        String server = namingServerService.lookup("DistLedger", "B").getHosts(0);
-        String host = server.split(":")[0];
-        int port = Integer.parseInt(server.split(":")[1]);
-        Logger.log("Connecting to " + host + ":" + port);
         try {
-            crossServerService.propagateState(host, port, ledgerCopy);
+            crossServerService.propagateState(ledgerCopy);
         } catch (Exception e) {
             Logger.log("Error:" + e.getMessage());
         }

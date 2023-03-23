@@ -3,9 +3,8 @@ package pt.tecnico.distledger.userclient.grpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import pt.ulisboa.tecnico.distledger.contract.user.UserDistLedger.*;
-import pt.ulisboa.tecnico.distledger.contract.namingserver.NamingServerServiceGrpc;
-import pt.ulisboa.tecnico.distledger.contract.namingserver.NamingServerDistLedger.*;
 import pt.ulisboa.tecnico.distledger.contract.user.UserServiceGrpc;
+import pt.ulisboa.tecnico.distledger.contract.namingserver.NamingServerDistLedger.*;
 
 import java.util.HashMap;
 import java.util.Map;
