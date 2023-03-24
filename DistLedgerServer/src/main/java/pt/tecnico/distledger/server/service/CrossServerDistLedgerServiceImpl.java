@@ -1,8 +1,5 @@
 package pt.tecnico.distledger.server.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import io.grpc.Status;
 import pt.tecnico.distledger.server.domain.ServerState;
 import pt.tecnico.distledger.server.domain.operation.*;
@@ -17,7 +14,7 @@ import io.grpc.stub.StreamObserver;
 public class CrossServerDistLedgerServiceImpl
         extends DistLedgerCrossServerServiceGrpc.DistLedgerCrossServerServiceImplBase {
 
-    private ServerState state;
+    private final ServerState state;
 
     public CrossServerDistLedgerServiceImpl(ServerState state) {
         this.state = state;
@@ -26,6 +23,10 @@ public class CrossServerDistLedgerServiceImpl
     @Override
     public void propagateState(PropagateStateRequest request, StreamObserver<PropagateStateResponse> responseObserver) {
         Logger.log("Received propagate state request");
+        if (!state.isActive()) {
+            responseObserver.onError(Status.UNAVAILABLE.withDescription("Secondary server is not active").asRuntimeException());
+            return;
+        }
         try {
             Operation operation;
             for (DistLedgerCommonDefinitions.Operation op : request.getState().getLedgerList()) {

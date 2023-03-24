@@ -8,9 +8,9 @@ import pt.tecnico.distledger.server.domain.ServerState;
 import pt.tecnico.distledger.server.domain.exceptions.*;
 
 public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBase {
-    private final String DEFAULT_ERROR_MESSAGE = "Operation Failed";
-    private final String INVALID_ARGUMENT_MESSAGE = "Invalid arguments";
-    private ServerState state;
+    private static final String DEFAULT_ERROR_MESSAGE = "Operation Failed";
+    private static final String INVALID_ARGUMENT_MESSAGE = "Invalid arguments";
+    private final ServerState state;
 
     public userDistLedgerServiceImpl(ServerState state) {
         this.state = state;
@@ -36,7 +36,10 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
                     .onError(Status.UNAVAILABLE.asRuntimeException());
         } catch (SecondaryServerWriteOperationException e) {
             responseObserver
-                    .onError(Status.UNAVAILABLE.withDescription(e.getMessage()).asRuntimeException());
+                    .onError(Status.PERMISSION_DENIED.withDescription(e.getMessage()).asRuntimeException());
+        } catch (FailedToPropagateException e) {
+            responseObserver
+                    .onError(Status.ABORTED.withDescription(e.getMessage()).asRuntimeException());
         } catch (Exception e) {
             responseObserver
                     .onError(Status.UNKNOWN.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
@@ -58,12 +61,15 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
         } catch (AccountDoesntExistException e) {
             responseObserver
                     .onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
-        } catch (DeleteBrokerAccountException e) {
+        } catch (DeleteBrokerAccountException | SecondaryServerWriteOperationException e) {
             responseObserver.onError(Status.PERMISSION_DENIED.withDescription(e.getMessage()).asRuntimeException());
         } catch (ServerUnavailableException e) {
             responseObserver.onError(Status.UNAVAILABLE.asRuntimeException());
         } catch (AccountHasBalanceException e) {
             responseObserver.onError(Status.FAILED_PRECONDITION.withDescription(e.getMessage()).asRuntimeException());
+        } catch (FailedToPropagateException e) {
+            responseObserver
+                    .onError(Status.ABORTED.withDescription(e.getMessage()).asRuntimeException());
         } catch (Exception e) {
             responseObserver
                     .onError(Status.UNKNOWN.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
@@ -87,6 +93,9 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
                     .onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         } catch (ServerUnavailableException e) {
             responseObserver.onError(Status.UNAVAILABLE.asRuntimeException());
+        } catch (FailedToPropagateException e) {
+            responseObserver
+                    .onError(Status.ABORTED.withDescription(e.getMessage()).asRuntimeException());
         } catch (Exception e) {
             responseObserver
                     .onError(Status.UNKNOWN.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
@@ -116,6 +125,12 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
                     .onError(Status.UNAVAILABLE.asRuntimeException());
         } catch (InvalidAmountException e) {
             responseObserver.onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        } catch (SecondaryServerWriteOperationException e) {
+            responseObserver
+                    .onError(Status.PERMISSION_DENIED.withDescription(e.getMessage()).asRuntimeException());
+        } catch (FailedToPropagateException e) {
+            responseObserver
+                    .onError(Status.ABORTED.withDescription(e.getMessage()).asRuntimeException());
         } catch (Exception e) {
             responseObserver
                     .onError(Status.UNKNOWN.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());

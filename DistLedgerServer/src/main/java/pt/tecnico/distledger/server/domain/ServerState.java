@@ -21,10 +21,10 @@ public class ServerState {
     private final CrossServerService crossServerService;
     private final NamingServerService namingServerService;
 
-    private final String SERVICE = "DistLedger";
-    private final String SECONDARY_QUALIFIER = "B";
+    private static final String SERVICE = "DistLedger";
+    private static final String SECONDARY_QUALIFIER = "B";
 
-    public ServerState(String service, String ns_host, int ns_port, NamingServerService namingServerService) {
+    public ServerState(NamingServerService namingServerService) {
         Logger.log("Initializing ServerState");
         this.ledger = new CopyOnWriteArrayList<>();
         this.accounts = new ConcurrentHashMap<>();
@@ -48,7 +48,7 @@ public class ServerState {
             List<String> hosts = namingServerService.lookup(SERVICE, SECONDARY_QUALIFIER).getHostsList();
             crossServerService.propagateState(op, hosts);
         } catch (Exception e) {
-            Logger.log("Error:" + e.getMessage());
+            throw new FailedToPropagateException();
         }
     }
 
