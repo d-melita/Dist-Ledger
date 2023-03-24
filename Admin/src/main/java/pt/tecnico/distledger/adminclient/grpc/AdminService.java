@@ -11,10 +11,10 @@ import java.util.Map;
 
 public class AdminService implements AutoCloseable {
 
-    private String service;
-    private NamingServerService namingServerService;
-    private Map<String, ManagedChannel> serverChannels;
-    private Map<String, AdminServiceGrpc.AdminServiceBlockingStub> serverStubs;
+    private final String service;
+    private final NamingServerService namingServerService;
+    private final Map<String, ManagedChannel> serverChannels;
+    private final Map<String, AdminServiceGrpc.AdminServiceBlockingStub> serverStubs;
 
     public AdminService(String service, String ns_host, int ns_port) {
         this.service = service;
@@ -29,10 +29,8 @@ public class AdminService implements AutoCloseable {
         LookupResponse response = this.namingServerService.lookup(this.service, server);
         if (response.getHostsCount() == 0)
             throw new RuntimeException("Server not found");
-        String sv[] = response.getHosts(0).split(":");
-        String host = sv[0];
-        int port = Integer.parseInt(sv[1]);
-        this.serverChannels.put(server, ManagedChannelBuilder.forAddress(host, port).usePlaintext().build());
+        String host = response.getHosts(0);
+        this.serverChannels.put(server, ManagedChannelBuilder.forTarget(host).usePlaintext().build());
         this.serverStubs.put(server, AdminServiceGrpc.newBlockingStub(serverChannels.get(server)));
     }
 

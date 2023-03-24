@@ -45,7 +45,7 @@ public class ServerMain {
         try {
             if (namingServerService.lookup(SERVICE, qualifier).getHostsCount() == 0 && qualifier.equals("A")) {
                 state = new ServerState(namingServerService, crossServerService);
-            } else if (qualifier.compareTo("B") == 0) {
+            } else if (qualifier.equals("B")) {
                 state = new SecondaryServerState(namingServerService);
             } else {
                 System.out.println("Invalid server qualifier");
