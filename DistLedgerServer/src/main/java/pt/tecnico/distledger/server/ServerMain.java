@@ -31,9 +31,9 @@ public class ServerMain {
         }
 
         // check arguments
-        if (args.length < 1) {
+        if (args.length < 2) {
             System.err.println("Argument(s) missing!");
-            System.err.println("Usage: mvn exec:java -Dexec.args=<port>");
+            System.err.println("Usage: mvn exec:java -Dexec.args=<port> <qualifier>");
             return;
         }
 
@@ -63,6 +63,7 @@ public class ServerMain {
         final BindableService adminImpl = new adminDistLedgerServiceImpl(state);
         Logger.log("adminImpl created");
         final BindableService crossServerImpl = new CrossServerDistLedgerServiceImpl(state);
+        Logger.log("crossServerImpl created");
 
         // Create a new server to listen on port
         Server server = ServerBuilder.forPort(port)

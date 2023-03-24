@@ -1,8 +1,5 @@
 package pt.tecnico.distledger.namingserver.domain;
 
-import pt.tecnico.distledger.utils.Logger;
-
-
 public class ServerEntry {
     private String host;
     private String qualifier;

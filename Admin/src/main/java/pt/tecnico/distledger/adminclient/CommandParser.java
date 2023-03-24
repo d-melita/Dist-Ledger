@@ -78,6 +78,7 @@ public class CommandParser {
         try {
             adminService.activate(server);
             System.out.println("OK\n\n");
+            Logger.log("Server " + server + " activated\n");
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
         }
@@ -96,6 +97,7 @@ public class CommandParser {
         try {
             adminService.deactivate(server);
             System.out.println("OK\n");
+            Logger.log("Server " + server + " deactivated\n");
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
         }

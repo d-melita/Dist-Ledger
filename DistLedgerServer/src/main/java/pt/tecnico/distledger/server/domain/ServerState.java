@@ -23,13 +23,14 @@ public class ServerState {
 
     private static final String SERVICE = "DistLedger";
     private static final String SECONDARY_QUALIFIER = "B";
+    private static final String BROKER = "broker";
 
     public ServerState(NamingServerService namingServerService) {
         Logger.log("Initializing ServerState");
         this.ledger = new CopyOnWriteArrayList<>();
         this.accounts = new ConcurrentHashMap<>();
         Logger.log("Creating Broker Account");
-        this.accounts.put("broker", 1000);
+        this.accounts.put(BROKER, 1000);
         Logger.log("Broker Account created");
         this.namingServerService = namingServerService;
         Logger.log("ServerState initialized");
@@ -58,7 +59,7 @@ public class ServerState {
 
     // User Interface Operations
     public synchronized void createAccount(String name) {
-        Logger.log("Creating account " + name);
+        Logger.log("Creating account \'" + name + "\'");
         if (!isActive) {
             throw new ServerUnavailableException();
         }
@@ -68,15 +69,15 @@ public class ServerState {
         propagateState(new CreateOp(name));
         addAccount(name);
         addOperation(new CreateOp(name));
-        Logger.log("Account " + name + " created");
+        Logger.log("Account \'" + name + "\' created");
     }
 
     public synchronized void deleteAccount(String name) {
-        Logger.log("Deleting account " + name);
+        Logger.log("Deleting account \'" + name + "\'");
         if (!isActive) {
             throw new ServerUnavailableException();
         }
-        if (name.equals("broker")) {
+        if (name.equals(BROKER)) {
             throw new DeleteBrokerAccountException(name);
         }
         if (!accountExists(name)) {
@@ -88,11 +89,11 @@ public class ServerState {
         propagateState(new DeleteOp(name));
         removeAccount(name);
         addOperation(new DeleteOp(name));
-        Logger.log("Account " + name + " deleted");
+        Logger.log("Account \'" + name + "\' deleted");
     }
 
     public synchronized void transfer(String from, String to, Integer amount) {
-        Logger.log("Transferring " + amount + " from " + from + " to " + to);
+        Logger.log("Transferring " + amount + " from \'" + from + "\' to \'" + to + "\'");
         if (!isActive) {
             throw new ServerUnavailableException();
         }
@@ -119,7 +120,7 @@ public class ServerState {
     }
 
     public synchronized Integer getAccountBalance(String name) {
-        Logger.log("Getting balance of account " + name);
+        Logger.log("Getting balance of account \'" + name + "\'");
         if (!isActive) {
             throw new ServerUnavailableException();
         }
@@ -142,11 +143,13 @@ public class ServerState {
     public synchronized void activate() {
         Logger.log("Admin activating server");
         this.isActive = true;
+        Logger.log("Server activated");
     }
 
     public synchronized void deactivate() {
         Logger.log("Admin deactivating server");
         this.isActive = false;
+        Logger.log("Server deactivated");
     }
 
     public synchronized boolean isActive() {
@@ -165,6 +168,7 @@ public class ServerState {
         Logger.log("Admin setting ledger");
         this.ledger.clear();
         this.ledger.addAll(ledger);
+        Logger.log("Ledger set");
     }
 
     public synchronized void addAccount(String name) {

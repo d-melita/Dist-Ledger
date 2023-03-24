@@ -15,6 +15,9 @@ public class CrossServerDistLedgerServiceImpl
         extends DistLedgerCrossServerServiceGrpc.DistLedgerCrossServerServiceImplBase {
 
     private final ServerState state;
+    private static final String SECONDARY_SERVER_NOT_ACTIVE = "Secondary server is not active";
+    private static final String INVALID_OPERATION_TYPE = "Invalid operation type";
+    private static final String FAILED = "Failed to propagate state";
 
     public CrossServerDistLedgerServiceImpl(ServerState state) {
         this.state = state;
@@ -24,7 +27,7 @@ public class CrossServerDistLedgerServiceImpl
     public void propagateState(PropagateStateRequest request, StreamObserver<PropagateStateResponse> responseObserver) {
         Logger.log("Received propagate state request");
         if (!state.isActive()) {
-            responseObserver.onError(Status.UNAVAILABLE.withDescription("Secondary server is not active").asRuntimeException());
+            responseObserver.onError(Status.UNAVAILABLE.withDescription(SECONDARY_SERVER_NOT_ACTIVE).asRuntimeException());
             return;
         }
         try {
@@ -46,7 +49,7 @@ public class CrossServerDistLedgerServiceImpl
                         break;
                     default:
                         responseObserver.onError(
-                                Status.INVALID_ARGUMENT.withDescription("Invalid operation type").asRuntimeException());
+                                Status.INVALID_ARGUMENT.withDescription(INVALID_OPERATION_TYPE).asRuntimeException());
                         return;
                 }
                 state.addOperation(operation);
@@ -54,7 +57,7 @@ public class CrossServerDistLedgerServiceImpl
             responseObserver.onNext(PropagateStateResponse.newBuilder().build());
             responseObserver.onCompleted();
         } catch (Exception e) {
-            responseObserver.onError(Status.UNKNOWN.withDescription("Failed to propagate state").asRuntimeException());
+            responseObserver.onError(Status.UNKNOWN.withDescription(FAILED).asRuntimeException());
         }
     }
 }

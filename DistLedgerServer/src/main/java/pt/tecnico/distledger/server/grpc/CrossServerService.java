@@ -37,11 +37,8 @@ public class CrossServerService {
             if (stubs.containsKey(host)) {
                 stubs.get(host).propagateState(request);
             } else {
-                System.out.println("Creating new channel to " + host);
                 channels.put(host, ManagedChannelBuilder.forTarget(host).usePlaintext().build());
-                System.out.println("Creating new stub to " + host);
                 stubs.put(host, DistLedgerCrossServerServiceGrpc.newBlockingStub(channels.get(host)));
-                System.out.println("Propagating state to " + host);
                 stubs.get(host).propagateState(request);
             }
         }

@@ -10,29 +10,22 @@ import pt.tecnico.distledger.namingserver.service.namingServerDistLedgerServiceI
 
 public class NamingServerMain {
 
+    private static final int namingServerPort = 5001;
+
     public static void main(String[] args) throws IOException, InterruptedException{
 
         System.out.println(NamingServerMain.class.getSimpleName());
 
-        // receive and print arguments
-        System.out.printf("Received %d arguments%n", args.length);
-        for (int i = 0; i < args.length; i++) {
-            System.out.printf("arg[%d] = %s%n", i, args[i]);
-        }
-
         // check arguments
-        if (args.length < 1) {
-            System.err.println("Argument(s) missing!");
-            System.err.println("Usage: mvn exec:java -Dexec.args=<port>");
+        if (args.length != 0) {
+            System.err.println("Usage: mvn exec:java");
             return;
         }
-
-        final int port = Integer.parseInt(args[0]);
 
         NamingServer namingServer = new NamingServer();
 
         // Create a new server to listen on port
-        Server server = ServerBuilder.forPort(port)
+        Server server = ServerBuilder.forPort(namingServerPort)
                 .addService(new namingServerDistLedgerServiceImpl(namingServer))
                 .build();
         Logger.log("Server created");

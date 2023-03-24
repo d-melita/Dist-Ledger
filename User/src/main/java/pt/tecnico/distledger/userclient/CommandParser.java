@@ -81,9 +81,10 @@ public class CommandParser {
         String server = split[1];
         String username = split[2];
 
-        Logger.log("Creating account for user " + username + " on server " + server + "...");
+        Logger.log("Creating account for user \'" + username + "\' on server " + server + "...");
         userService.createAccount(server, username);
         System.out.println("OK\n");
+        Logger.log("Account created for user \'" + username + "\'");
     }
 
     private void deleteAccount(String line){
@@ -96,9 +97,10 @@ public class CommandParser {
         String server = split[1];
         String username = split[2];
 
-        Logger.log("Deleting account for user " + username + " on server " + server + "...");
+        Logger.log("Deleting account for user \'" + username + "\'");
         userService.deleteAccount(server, username);
         System.out.println("OK\n");
+        Logger.log("Account deleted for user \'" + username + "\'");
     }
 
 
@@ -112,11 +114,12 @@ public class CommandParser {
         String server = split[1];
         String username = split[2];
 
-        Logger.log("Getting balance for user " + username + " on server " + server + "...");
+        Logger.log("Getting balance for user \'" + username + "\' on server " + server + "...");
 
         int balance = userService.balance(server, username).getValue();
         System.out.println("OK");
         if (balance > 0) {
+            Logger.log("Balance for user \'" + username + "\' is:");
             System.out.println(balance);
         }
         System.out.println();
@@ -134,7 +137,7 @@ public class CommandParser {
         String dest = split[3];
         Integer amount = Integer.valueOf(split[4]);
 
-        Logger.log("Transferring " + amount + " from user " + from + " to user " + dest + " on server " + server + "...");
+        Logger.log("Transferring " + amount + " from user \'" + from + "\' to user \'" + dest + "\'");
         userService.transferTo(server, from, dest, amount);
         System.out.println("OK\n");
     }

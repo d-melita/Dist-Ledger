@@ -15,7 +15,11 @@ import io.grpc.stub.StreamObserver;
 import pt.tecnico.distledger.server.domain.ServerState;
 
 public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImplBase{
-    ServerState state;
+
+    private final ServerState state;
+    private static final String ACTIVATION_FAILED = "Server activation failed";
+    private static final String DEACTIVATION_FAILED = "Server deactivation failed";
+    private static final String LEDGER_FAILED = "Getting ledger failed";
 
     public adminDistLedgerServiceImpl(ServerState state) {
         this.state = state;
@@ -30,7 +34,7 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
             responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver
-                    .onError(Status.UNKNOWN.withDescription("Server activation failed").asRuntimeException());
+                    .onError(Status.UNKNOWN.withDescription(ACTIVATION_FAILED).asRuntimeException());
         }
     }
 
@@ -43,7 +47,7 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
             responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver
-                    .onError(Status.UNKNOWN.withDescription("Server deactivation failed").asRuntimeException());
+                    .onError(Status.UNKNOWN.withDescription(DEACTIVATION_FAILED).asRuntimeException());
         }
     }
 
@@ -65,7 +69,7 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
         responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver
-                    .onError(Status.UNKNOWN.withDescription("Getting ledger failed").asRuntimeException());
+                    .onError(Status.UNKNOWN.withDescription(LEDGER_FAILED).asRuntimeException());
         }
     }
 }

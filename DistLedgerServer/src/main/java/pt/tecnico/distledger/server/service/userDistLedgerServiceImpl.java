@@ -8,9 +8,10 @@ import pt.tecnico.distledger.server.domain.ServerState;
 import pt.tecnico.distledger.server.domain.exceptions.*;
 
 public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBase {
+    
+    private final ServerState state;
     private static final String DEFAULT_ERROR_MESSAGE = "Operation Failed";
     private static final String INVALID_ARGUMENT_MESSAGE = "Invalid arguments";
-    private final ServerState state;
 
     public userDistLedgerServiceImpl(ServerState state) {
         this.state = state;
