@@ -6,6 +6,7 @@ import io.grpc.ServerBuilder;
 
 import java.io.IOException;
 
+import pt.tecnico.distledger.server.grpc.CrossServerService;
 import pt.tecnico.distledger.utils.Logger;
 import pt.tecnico.distledger.server.domain.ServerState;
 import pt.tecnico.distledger.server.domain.SecondaryServerState;
@@ -16,7 +17,8 @@ public class ServerMain {
     private static final String LOCALHOST = "localhost";
     private static final String SERVICE = "DistLedger";
     private static final int NS_PORT = 5001;
-    private static NamingServerService namingServerService = new NamingServerService(LOCALHOST, NS_PORT);
+    private static final NamingServerService namingServerService = new NamingServerService(LOCALHOST, NS_PORT);
+    private static final CrossServerService crossServerService = new CrossServerService();
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -42,7 +44,7 @@ public class ServerMain {
         ServerState state = null;
         try {
             if (namingServerService.lookup(SERVICE, qualifier).getHostsCount() == 0 && qualifier.equals("A")) {
-                state = new ServerState(namingServerService);
+                state = new ServerState(namingServerService, crossServerService);
             } else if (qualifier.compareTo("B") == 0) {
                 state = new SecondaryServerState(namingServerService);
             } else {
@@ -80,7 +82,8 @@ public class ServerMain {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("\nServer shut down");
             namingServerService.unregister(SERVICE, host_address);
-            namingServerService.getChannel().shutdown();
+            namingServerService.shutdown();
+            crossServerService.shutdownAll();
         }
         ));
         

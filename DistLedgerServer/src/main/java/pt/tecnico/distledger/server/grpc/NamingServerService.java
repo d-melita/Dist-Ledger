@@ -15,8 +15,8 @@ public class NamingServerService{
         stub = NamingServerServiceGrpc.newBlockingStub(channel);
     }
 
-    public ManagedChannel getChannel() {
-        return channel;
+    public void shutdown() {
+        channel.shutdown();
     }
 
     public void register(String service, String host, String qualifier) {
@@ -27,8 +27,7 @@ public class NamingServerService{
 
     public LookupResponse lookup(String service, String qualifier) {
         LookupRequest request = LookupRequest.newBuilder().setService(service).setQualifier(qualifier).build();
-        LookupResponse response = stub.lookup(request);
-        return response;
+        return stub.lookup(request);
     }
 
     public void unregister(String service, String host) {

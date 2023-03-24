@@ -3,6 +3,7 @@ package pt.tecnico.distledger.server.domain;
 import pt.tecnico.distledger.server.domain.exceptions.SecondaryServerWriteOperationException;
 import pt.tecnico.distledger.server.grpc.NamingServerService;
 
+
 public class SecondaryServerState extends ServerState {
 
     public SecondaryServerState(NamingServerService namingServerService) {

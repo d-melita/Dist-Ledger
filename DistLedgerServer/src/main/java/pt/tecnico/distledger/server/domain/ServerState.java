@@ -18,7 +18,7 @@ public class ServerState {
 
     private boolean isActive = true;
 
-    private final CrossServerService crossServerService;
+    private CrossServerService crossServerService;
     private final NamingServerService namingServerService;
 
     private static final String SERVICE = "DistLedger";
@@ -31,9 +31,13 @@ public class ServerState {
         Logger.log("Creating Broker Account");
         this.accounts.put("broker", 1000);
         Logger.log("Broker Account created");
-        this.crossServerService = new CrossServerService();
         this.namingServerService = namingServerService;
         Logger.log("ServerState initialized");
+    }
+
+    public ServerState(NamingServerService namingServerService, CrossServerService crossServerService) {
+        this(namingServerService);
+        this.crossServerService = crossServerService;
     }
 
     public synchronized void addOperation(Operation op) {
