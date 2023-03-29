@@ -39,7 +39,7 @@ public class CommandParser {
 
                     case DELETE_ACCOUNT:
                         //this.deleteAccount(line);
-                        System.out.println("deleteAccount not possible in phase 3");
+                        System.out.println("deleteAccount not possible in phase 3\n");
                         break;
 
                     case TRANSFER_TO:
