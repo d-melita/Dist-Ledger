@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.distledger.contract.user.UserServiceGrpc;
 import pt.ulisboa.tecnico.distledger.contract.namingserver.NamingServerDistLedger.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class UserService implements AutoCloseable {
@@ -40,13 +41,13 @@ public class UserService implements AutoCloseable {
         cacheStub(server);
     }
 
-    public void createAccount(String server, String username) {
+    public CreateAccountResponse createAccount(String server, String username, List<Integer> prevTS) {
         try {
             cacheStub(server);
-            this.serverStubs.get(server).createAccount(CreateAccountRequest.newBuilder().setUserId(username).build());
+            return this.serverStubs.get(server).createAccount(CreateAccountRequest.newBuilder().setUserId(username).addAllPrevTS(prevTS).build());
         } catch (Exception e) {
             invalidateAndCacheStub(server);
-            this.serverStubs.get(server).createAccount(CreateAccountRequest.newBuilder().setUserId(username).build());
+            return this.serverStubs.get(server).createAccount(CreateAccountRequest.newBuilder().setUserId(username).addAllPrevTS(prevTS).build());
         }
     }
 
@@ -60,25 +61,25 @@ public class UserService implements AutoCloseable {
         }
     }
 
-    public BalanceResponse balance(String server, String username) {
+    public BalanceResponse balance(String server, String username, List<Integer> prevTS) {
         try {
             cacheStub(server);
-            return this.serverStubs.get(server).balance(BalanceRequest.newBuilder().setUserId(username).build());
+            return this.serverStubs.get(server).balance(BalanceRequest.newBuilder().setUserId(username).addAllPrevTS(prevTS).build());
         } catch (Exception e) {
             invalidateAndCacheStub(server);
-            return this.serverStubs.get(server).balance(BalanceRequest.newBuilder().setUserId(username).build());
+            return this.serverStubs.get(server).balance(BalanceRequest.newBuilder().setUserId(username).addAllPrevTS(prevTS).build());
         }
     }
 
-    public void transferTo(String server, String from, String dest, int amount) {
+    public TransferToResponse transferTo(String server, String from, String dest, int amount, List<Integer> prevTS) {
         try {
             cacheStub(server);
-            this.serverStubs.get(server).transferTo(
-                    TransferToRequest.newBuilder().setAccountFrom(from).setAccountTo(dest).setAmount(amount).build());
+            return this.serverStubs.get(server).transferTo(
+                    TransferToRequest.newBuilder().setAccountFrom(from).setAccountTo(dest).setAmount(amount).addAllPrevTS(prevTS).build());
         } catch (Exception e) {
             invalidateAndCacheStub(server);
-            this.serverStubs.get(server).transferTo(
-                    TransferToRequest.newBuilder().setAccountFrom(from).setAccountTo(dest).setAmount(amount).build());
+            return this.serverStubs.get(server).transferTo(
+                    TransferToRequest.newBuilder().setAccountFrom(from).setAccountTo(dest).setAmount(amount).addAllPrevTS(prevTS).build());
         }
     }
 
