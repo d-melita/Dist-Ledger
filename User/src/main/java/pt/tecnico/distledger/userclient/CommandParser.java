@@ -1,7 +1,10 @@
 package pt.tecnico.distledger.userclient;
 
 import pt.tecnico.distledger.userclient.grpc.UserService;
+import pt.ulisboa.tecnico.distledger.contract.user.UserDistLedger.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import pt.tecnico.distledger.utils.Logger;
 
@@ -16,9 +19,12 @@ public class CommandParser {
     private static final String EXIT = "exit";
 
     private final UserService userService;
+    private List<Integer> prevTS = new ArrayList<>();
 
     public CommandParser(UserService userService) {
         this.userService = userService;
+        prevTS.add(0);
+        prevTS.add(0);
     }
 
     void parseInput() {
@@ -83,7 +89,7 @@ public class CommandParser {
         String username = split[2];
 
         Logger.log("Creating account for user \'" + username + "\' on server " + server + "...");
-        userService.createAccount(server, username);
+        this.prevTS = userService.createAccount(server, username, prevTS).getTSList();
         System.out.println("OK\n");
         Logger.log("Account created for user \'" + username + "\'");
     }
@@ -117,7 +123,9 @@ public class CommandParser {
 
         Logger.log("Getting balance for user \'" + username + "\' on server " + server + "...");
 
-        int balance = userService.balance(server, username).getValue();
+        BalanceResponse response = userService.balance(server, username, prevTS);
+        int balance = response.getValue();
+        this.prevTS = response.getValueTSList();
         System.out.println("OK");
         if (balance > 0) {
             Logger.log("Balance for user \'" + username + "\' is:");
@@ -139,7 +147,7 @@ public class CommandParser {
         Integer amount = Integer.valueOf(split[4]);
 
         Logger.log("Transferring " + amount + " from user \'" + from + "\' to user \'" + dest + "\'");
-        userService.transferTo(server, from, dest, amount);
+        this.prevTS = userService.transferTo(server, from, dest, amount, prevTS).getTSList();
         System.out.println("OK\n");
     }
 
