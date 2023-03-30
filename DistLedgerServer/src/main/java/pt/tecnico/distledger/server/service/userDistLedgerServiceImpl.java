@@ -1,5 +1,7 @@
 package pt.tecnico.distledger.server.service;
 
+import java.util.List;
+
 import io.grpc.Status;
 import pt.ulisboa.tecnico.distledger.contract.user.UserServiceGrpc;
 import pt.ulisboa.tecnico.distledger.contract.user.UserDistLedger.*;
@@ -25,8 +27,8 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             return;
         }
         try {
-            state.createAccount(request.getUserId());
-            CreateAccountResponse response = CreateAccountResponse.newBuilder().build();
+            List<Integer> replicaTS = state.createAccount(request.getUserId());
+            CreateAccountResponse response = CreateAccountResponse.newBuilder().addAllTS(replicaTS).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (AccountAlreadyExistsException e) {
@@ -111,8 +113,8 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             return;
         }
         try {
-            state.transfer(request.getAccountFrom(), request.getAccountTo(), request.getAmount());
-            TransferToResponse response = TransferToResponse.newBuilder().build();
+            List<Integer> replicaTS = state.transfer(request.getAccountFrom(), request.getAccountTo(), request.getAmount());
+            TransferToResponse response = TransferToResponse.newBuilder().addAllTS(replicaTS).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (AccountDoesntExistException e) {

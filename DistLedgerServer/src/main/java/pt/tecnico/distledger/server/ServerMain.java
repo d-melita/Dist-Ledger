@@ -9,7 +9,6 @@ import java.io.IOException;
 import pt.tecnico.distledger.server.grpc.CrossServerService;
 import pt.tecnico.distledger.utils.Logger;
 import pt.tecnico.distledger.server.domain.ServerState;
-import pt.tecnico.distledger.server.domain.SecondaryServerState;
 import pt.tecnico.distledger.server.service.*;
 import pt.tecnico.distledger.server.grpc.NamingServerService;
 
@@ -43,10 +42,8 @@ public class ServerMain {
 
         ServerState state = null;
         try {
-            if (namingServerService.lookup(SERVICE, qualifier).getHostsCount() == 0 && qualifier.equals("A")) {
-                state = new ServerState(namingServerService, crossServerService);
-            } else if (qualifier.equals("B")) {
-                state = new SecondaryServerState(namingServerService);
+            if (namingServerService.lookup(SERVICE, qualifier).getHostsCount() == 0 && (qualifier.equals("A") || qualifier.equals("B"))) {
+                state = new ServerState(namingServerService, crossServerService, qualifier);
             } else {
                 System.out.println("Invalid server qualifier");
                 System.exit(1);
