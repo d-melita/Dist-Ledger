@@ -42,11 +42,7 @@ public class ServerMain {
 
         ServerState state = null;
         try {
-            if (namingServerService.lookup(SERVICE, qualifier).getHostsCount() == 0 && (qualifier.equals("A") || qualifier.equals("B"))) {
-                state = new ServerState(namingServerService, crossServerService, qualifier);
-            } else {
-                System.out.println("Invalid server qualifier");
-                System.exit(1);
+            state = new ServerState(namingServerService, crossServerService, qualifier);
             }
             namingServerService.register(SERVICE, host_address, qualifier);
         } catch (Exception e) {
