@@ -27,7 +27,8 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             return;
         }
         try {
-            List<Integer> replicaTS = state.createAccount(request.getUserId());
+            state.createAccount(request.getUserId(), request.getPrevTSList());
+            List<Integer> replicaTS = state.getReplicaTS();
             CreateAccountResponse response = CreateAccountResponse.newBuilder().addAllTS(replicaTS).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -87,8 +88,9 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             return;
         }
         try {
-            int balance = state.getAccountBalance(request.getUserId());
-            BalanceResponse response = BalanceResponse.newBuilder().setValue(balance).build();
+            int balance = state.getAccountBalance(request.getUserId(), request.getPrevTSList());
+            List<Integer> replicaTS = state.getReplicaTS();
+            BalanceResponse response = BalanceResponse.newBuilder().setValue(balance).addAllValueTS(replicaTS).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (AccountDoesntExistException e) {
@@ -113,7 +115,8 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             return;
         }
         try {
-            List<Integer> replicaTS = state.transfer(request.getAccountFrom(), request.getAccountTo(), request.getAmount());
+            state.transfer(request.getAccountFrom(), request.getAccountTo(), request.getAmount(), request.getPrevTSList());
+            List<Integer> replicaTS = state.getReplicaTS();
             TransferToResponse response = TransferToResponse.newBuilder().addAllTS(replicaTS).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
