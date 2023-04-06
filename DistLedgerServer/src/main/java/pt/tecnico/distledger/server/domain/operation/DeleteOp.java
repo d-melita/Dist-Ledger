@@ -3,10 +3,12 @@ package pt.tecnico.distledger.server.domain.operation;
 import pt.tecnico.distledger.server.Convertor;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 
+import java.util.List;
+
 public class DeleteOp extends Operation {
 
-    public DeleteOp(String account) {
-        super(account);
+    public DeleteOp(String account, List<Integer> prevTS) {
+        super(account, prevTS);
     }
 
     @Override

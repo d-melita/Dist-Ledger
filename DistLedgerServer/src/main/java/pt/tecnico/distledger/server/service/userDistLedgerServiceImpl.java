@@ -10,7 +10,7 @@ import pt.tecnico.distledger.server.domain.ServerState;
 import pt.tecnico.distledger.server.domain.exceptions.*;
 
 public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBase {
-    
+
     private final ServerState state;
     private static final String DEFAULT_ERROR_MESSAGE = "Operation Failed";
     private static final String INVALID_ARGUMENT_MESSAGE = "Invalid arguments";
@@ -58,7 +58,7 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             return;
         }
         try {
-            state.deleteAccount(request.getUserId());
+
             DeleteAccountResponse response = DeleteAccountResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -115,7 +115,8 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             return;
         }
         try {
-            state.transfer(request.getAccountFrom(), request.getAccountTo(), request.getAmount(), request.getPrevTSList());
+            state.transfer(request.getAccountFrom(), request.getAccountTo(), request.getAmount(),
+                    request.getPrevTSList());
             List<Integer> replicaTS = state.getReplicaTS();
             TransferToResponse response = TransferToResponse.newBuilder().addAllTS(replicaTS).build();
             responseObserver.onNext(response);

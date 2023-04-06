@@ -27,7 +27,8 @@ public class CrossServerDistLedgerServiceImpl
     public void propagateState(PropagateStateRequest request, StreamObserver<PropagateStateResponse> responseObserver) {
         Logger.log("Received propagate state request");
         if (!state.isActive()) {
-            responseObserver.onError(Status.UNAVAILABLE.withDescription(SECONDARY_SERVER_NOT_ACTIVE).asRuntimeException());
+            responseObserver
+                    .onError(Status.UNAVAILABLE.withDescription(SECONDARY_SERVER_NOT_ACTIVE).asRuntimeException());
             return;
         }
         try {
@@ -35,15 +36,15 @@ public class CrossServerDistLedgerServiceImpl
             for (DistLedgerCommonDefinitions.Operation op : request.getState().getLedgerList()) {
                 switch (op.getType()) {
                     case OP_CREATE_ACCOUNT:
-                        operation = new CreateOp(op.getUserId());
+                        // TO DO: cenas
                         state.addAccount(op.getUserId());
                         break;
                     case OP_DELETE_ACCOUNT:
-                        operation = new DeleteOp(op.getUserId());
+                        // TO DO: cenas
                         state.removeAccount(op.getUserId());
                         break;
                     case OP_TRANSFER_TO:
-                        operation = new TransferOp(op.getUserId(), op.getDestUserId(), op.getAmount());
+                        // TO DO: cenas
                         state.updateAccount(op.getUserId(), -op.getAmount());
                         state.updateAccount(op.getDestUserId(), op.getAmount());
                         break;
@@ -52,7 +53,7 @@ public class CrossServerDistLedgerServiceImpl
                                 Status.INVALID_ARGUMENT.withDescription(INVALID_OPERATION_TYPE).asRuntimeException());
                         return;
                 }
-                state.addOperation(operation);
+                // TO DO: cenas
             }
             responseObserver.onNext(PropagateStateResponse.newBuilder().build());
             responseObserver.onCompleted();

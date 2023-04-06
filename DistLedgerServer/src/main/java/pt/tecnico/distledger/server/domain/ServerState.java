@@ -43,7 +43,8 @@ public class ServerState {
         this.replicaTS.add(0);
     }
 
-    public ServerState(NamingServerService namingServerService, CrossServerService crossServerService, String qualifier) {
+    public ServerState(NamingServerService namingServerService, CrossServerService crossServerService,
+            String qualifier) {
         this(namingServerService);
         this.crossServerService = crossServerService;
         this.qualifier = qualifier;
@@ -82,6 +83,10 @@ public class ServerState {
         }
     }
 
+    private boolean operationIsStable(List<Integer> prevTS) {
+        return prevTS.get(0) <= replicaTS.get(0) && prevTS.get(1) <= replicaTS.get(1);
+    }
+
     // User Interface Operations
     public synchronized void createAccount(String name, List<Integer> prevTS) {
         Logger.log("Creating account \'" + name + "\'");
@@ -91,13 +96,17 @@ public class ServerState {
         if (accountExists(name)) {
             throw new AccountAlreadyExistsException(name);
         }
-        addAccount(name);
-        addOperation(new CreateOp(name));
+        CreateOp op = new CreateOp(name, prevTS);
+        if (operationIsStable(prevTS)) {
+            op.setTS(prevTS);
+            addAccount(name);
+        }
+        addOperation(new CreateOp(name, prevTS));
         Logger.log("Account \'" + name + "\' created");
         updateReplicaTS();
     }
 
-    public synchronized void deleteAccount(String name) {
+    public synchronized void deleteAccount(String name, List<Integer> prevTS) {
         Logger.log("Deleting account \'" + name + "\'");
         if (!isActive) {
             throw new ServerUnavailableException();
@@ -111,8 +120,12 @@ public class ServerState {
         if (getAccountBalance(name, getReplicaTS()) > 0) {
             throw new AccountHasBalanceException(name);
         }
-        removeAccount(name);
-        addOperation(new DeleteOp(name));
+        DeleteOp op = new DeleteOp(name, prevTS);
+        if (operationIsStable(prevTS)) {
+            op.setTS(prevTS);
+            removeAccount(name);
+        }
+        addOperation(op);
         Logger.log("Account \'" + name + "\' deleted");
     }
 
@@ -136,9 +149,13 @@ public class ServerState {
         if (!accountHasBalance(from, amount)) {
             throw new InsufficientFundsException(from);
         }
-        updateAccount(from, -amount);
-        updateAccount(to, amount);
-        addOperation(new TransferOp(from, to, amount));
+        TransferOp op = new TransferOp(from, to, amount, prevTS);
+        if (operationIsStable(prevTS)) {
+            op.setTS(prevTS);
+            updateAccount(from, -amount);
+            updateAccount(to, amount);
+        }
+        addOperation(op);
         Logger.log("Transfer completed");
         updateReplicaTS();
     }
