@@ -43,7 +43,6 @@ public class ServerMain {
         ServerState state = null;
         try {
             state = new ServerState(namingServerService, crossServerService, qualifier);
-            }
             namingServerService.register(SERVICE, host_address, qualifier);
         } catch (Exception e) {
             System.out.println("Naming server not available");
@@ -71,16 +70,15 @@ public class ServerMain {
 
         // Server threads are running in the background.
         System.out.println("Server started");
-        
+
         // Shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("\nServer shut down");
             namingServerService.unregister(SERVICE, host_address);
             namingServerService.shutdown();
             crossServerService.shutdownAll();
-        }
-        ));
-        
+        }));
+
         // Do not exit the main thread. Wait until server is terminated.
         server.awaitTermination();
     }
