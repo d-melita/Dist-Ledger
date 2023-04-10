@@ -92,13 +92,13 @@ public class ServerState {
             throw new AccountAlreadyExistsException(name);
         }
         CreateOp op = new CreateOp(name, prevTS);
+        updateReplicaTS();
         if (operationIsStable(prevTS)) {
-            op.setTS(prevTS);
+            op.setTS(getReplicaTS());
             addAccount(name);
         }
         addOperation(new CreateOp(name, prevTS));
         Logger.log("Account \'" + name + "\' created");
-        updateReplicaTS();
     }
 
     public synchronized void deleteAccount(String name, List<Integer> prevTS) {
@@ -117,7 +117,7 @@ public class ServerState {
         }
         DeleteOp op = new DeleteOp(name, prevTS);
         if (operationIsStable(prevTS)) {
-            op.setTS(prevTS);
+            op.setTS(getReplicaTS());
             removeAccount(name);
         }
         addOperation(op);
@@ -145,14 +145,14 @@ public class ServerState {
             throw new InsufficientFundsException(from);
         }
         TransferOp op = new TransferOp(from, to, amount, prevTS);
+        updateReplicaTS();
         if (operationIsStable(prevTS)) {
-            op.setTS(prevTS);
+            op.setTS(getReplicaTS());
             updateAccount(from, -amount);
             updateAccount(to, amount);
         }
         addOperation(op);
         Logger.log("Transfer completed");
-        updateReplicaTS();
     }
 
     public synchronized Integer getAccountBalance(String name, List<Integer> prevTS) {
@@ -212,12 +212,49 @@ public class ServerState {
 
     public void gossip() {
         Logger.log("Propagating state to other servers");
-
         try {
             List<String> hosts = namingServerService.lookup(SERVICE, secondaryServer).getHostsList();
             crossServerService.propagateState(getLedger(), hosts, this.replicaTS);
         } catch (Exception e) {
             throw new FailedToPropagateException();
+        }
+    }
+
+    public boolean isBiggerTS(List<Integer> ts) {
+        if (ts == null) {
+            return true;
+        }
+        for (int i = 0; i < ts.size(); i++) {
+            if (ts.get(i) > this.replicaTS.get(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void propagateState(List<Operation> ledger) {
+        Logger.log("Propagating state");
+        for (Operation op : ledger) {
+            if (isBiggerTS(op.getTS())) {
+                addOperation(op);
+            }
+        }
+        boolean noMoreExecutions = false;
+        while (!noMoreExecutions) {
+            for (Operation op : getLedger()) {
+                if (isBiggerTS(op.getPrevTS())) {
+                    noMoreExecutions = false;
+                    if (op instanceof CreateOp) {
+                        addAccount(((CreateOp) op).getAccount());
+                    } else if (op instanceof DeleteOp) {
+                        removeAccount(((DeleteOp) op).getAccount());
+                    } else if (op instanceof TransferOp) {
+                        TransferOp transferOp = (TransferOp) op;
+                        updateAccount(transferOp.getAccount(), -transferOp.getAmount());
+                        updateAccount(transferOp.getDestAccount(), transferOp.getAmount());
+                    }
+                }
+            }
         }
     }
 

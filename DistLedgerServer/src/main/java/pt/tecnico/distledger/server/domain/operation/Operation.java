@@ -19,7 +19,11 @@ public abstract class Operation {
     }
 
     public List<Integer> getPrevTS() {
-        return prevTS;
+        return this.prevTS;
+    }
+
+    public List<Integer> getTS() {
+        return this.TS;
     }
 
     public void setTS(List<Integer> TS) {
@@ -28,7 +32,7 @@ public abstract class Operation {
     }
 
     public String getAccount() {
-        return account;
+        return this.account;
     }
 
     public void setAccount(String account) {
