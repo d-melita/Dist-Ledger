@@ -84,7 +84,12 @@ public class ServerState {
     }
 
     private boolean operationIsStable(List<Integer> prevTS) {
-        return prevTS.get(0) <= replicaTS.get(0) && prevTS.get(1) <= replicaTS.get(1);
+        for (Integer i: prevTS) {
+            if (i > replicaTS.get(prevTS.indexOf(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // User Interface Operations
@@ -164,6 +169,9 @@ public class ServerState {
         Logger.log("Getting balance of account \'" + name + "\'");
         if (!isActive) {
             throw new ServerUnavailableException();
+        }
+        if (!operationIsStable(prevTS)) {
+            throw new OperationNotStableException();
         }
         if (!accountExists(name)) {
             throw new AccountDoesntExistException(name);

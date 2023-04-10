@@ -98,7 +98,7 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
                     .onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         } catch (ServerUnavailableException e) {
             responseObserver.onError(Status.UNAVAILABLE.asRuntimeException());
-        } catch (FailedToPropagateException e) {
+        } catch (FailedToPropagateException | OperationNotStableException e) {
             responseObserver
                     .onError(Status.ABORTED.withDescription(e.getMessage()).asRuntimeException());
         } catch (Exception e) {
