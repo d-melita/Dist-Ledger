@@ -89,7 +89,8 @@ public class CommandParser {
         String username = split[2];
 
         Logger.log("Creating account for user \'" + username + "\' on server " + server + "...");
-        this.prevTS = userService.createAccount(server, username, prevTS).getTSList();
+        List<Integer> tempTS = userService.createAccount(server, username, prevTS).getTSList();
+        updateTS(tempTS);
         System.out.println("OK\n");
         Logger.log("Account created for user \'" + username + "\'");
     }
@@ -125,7 +126,8 @@ public class CommandParser {
 
         BalanceResponse response = userService.balance(server, username, prevTS);
         int balance = response.getValue();
-        this.prevTS = response.getValueTSList();
+        List<Integer> tempTS = response.getValueTSList();
+        updateTS(tempTS);
         System.out.println("OK");
         if (balance > 0) {
             Logger.log("Balance for user \'" + username + "\' is:");
@@ -147,8 +149,17 @@ public class CommandParser {
         Integer amount = Integer.valueOf(split[4]);
 
         Logger.log("Transferring " + amount + " from user \'" + from + "\' to user \'" + dest + "\'");
-        this.prevTS = userService.transferTo(server, from, dest, amount, prevTS).getTSList();
+        List<Integer> tempTS = userService.transferTo(server, from, dest, amount, prevTS).getTSList();
+        updateTS(tempTS);
         System.out.println("OK\n");
+    }
+
+    private void updateTS(List<Integer> tempTS){
+        for(int i = 0; i < prevTS.size(); i++){
+            if(tempTS.get(i) > prevTS.get(i)){
+                prevTS.set(i, tempTS.get(i));
+            }
+        }
     }
 
     private void printUsage() {
