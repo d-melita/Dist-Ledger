@@ -123,11 +123,26 @@ public class CommandParser {
         }
     }
 
-    @SuppressWarnings("unused")
     private void gossip(String line){
-        /* TODO Phase-3 */
-        System.out.println("TODO: implement gossip command (only for Phase-3)");
+        String[] split = line.split(SPACE);
+
+        if (split.length != 2){
+            this.printUsage();
+            return;
+        }
+        String server = split[1];
+
+        Logger.log("Getting ledger state from server " + server);
+        
+        try {
+            adminService.gossip(server);
+            System.out.println("OK\n");
+            Logger.log("Server " + server + " gossiped\n");
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+        }
     }
+
     private void printUsage() {
         System.out.println("Usage:\n" +
                 "- activate <server>\n" +

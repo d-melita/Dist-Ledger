@@ -70,6 +70,16 @@ public class AdminService implements AutoCloseable {
         }
     }
 
+    public void gossip(String server) {
+        try {
+            cacheStub(server);
+            this.serverStubs.get(server).gossip(GossipRequest.getDefaultInstance());
+        } catch (Exception e) {
+            invalidateAndCacheStub(server);
+            this.serverStubs.get(server).gossip(GossipRequest.getDefaultInstance());
+        }
+    }
+
     @Override
     public void close() {
         this.serverChannels.forEach((k, v) -> v.shutdownNow());

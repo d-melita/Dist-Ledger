@@ -72,4 +72,17 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
                     .onError(Status.UNKNOWN.withDescription(LEDGER_FAILED).asRuntimeException());
         }
     }
+
+    @Override
+    public void gossip(GossipRequest request, StreamObserver<GossipResponse> responseObserver) {
+        try {
+            state.gossip();
+            GossipResponse response = GossipResponse.newBuilder().build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            responseObserver
+                    .onError(Status.UNKNOWN.withDescription(ACTIVATION_FAILED).asRuntimeException());
+        }
+    }
 }

@@ -220,6 +220,11 @@ public class ServerState {
         Logger.log("Ledger set");
     }
 
+    public void gossip() {
+        Logger.log("Gossiping to server " + secondaryServer);
+        // TODO - propagate state to other server
+    }
+
     public synchronized void addAccount(String name) {
         this.accounts.put(name, 0);
     }
