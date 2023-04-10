@@ -27,11 +27,14 @@ public class CrossServerService {
         channels = new HashMap<>();
     }
 
-    public void propagateState(Operation op, List<String> hosts, List<Integer> replicaTS) {
-        List<DistLedgerCommonDefinitions.Operation> ops = new ArrayList<>();
-        ops.add(op.accept(convertor));
-        LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(ops).build();
-        PropagateStateRequest request = PropagateStateRequest.newBuilder().setState(ledgerState).addAllReplicaTS(replicaTS).build();
+    public void propagateState(List<Operation> operationsList, List<String> hosts, List<Integer> replicaTS) {
+        List<DistLedgerCommonDefinitions.Operation> operations = new ArrayList<>();
+        for (Operation op : operationsList) {
+            operations.add(op.accept(convertor));
+        }
+        LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(operations).build();
+        PropagateStateRequest request = PropagateStateRequest.newBuilder().setState(ledgerState)
+                .addAllReplicaTS(replicaTS).build();
 
         for (String host : hosts) {
             if (stubs.containsKey(host)) {

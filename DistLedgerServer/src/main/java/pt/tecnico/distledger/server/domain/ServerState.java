@@ -65,16 +65,6 @@ public class ServerState {
         Logger.log("Operation added");
     }
 
-    public synchronized void propagateState(Operation op) {
-        Logger.log("Propagating state to other servers");
-        try {
-            List<String> hosts = namingServerService.lookup(SERVICE, secondaryServer).getHostsList();
-            crossServerService.propagateState(op, hosts, this.replicaTS);
-        } catch (Exception e) {
-            throw new FailedToPropagateException();
-        }
-    }
-
     public void updateReplicaTS() {
         if (qualifier.equals("A")) {
             replicaTS.set(0, replicaTS.get(0) + 1);
@@ -84,7 +74,7 @@ public class ServerState {
     }
 
     private boolean operationIsStable(List<Integer> prevTS) {
-        for (Integer i: prevTS) {
+        for (Integer i : prevTS) {
             if (i > replicaTS.get(prevTS.indexOf(i))) {
                 return false;
             }
@@ -221,8 +211,14 @@ public class ServerState {
     }
 
     public void gossip() {
-        Logger.log("Gossiping to server " + secondaryServer);
-        // TODO - propagate state to other server
+        Logger.log("Propagating state to other servers");
+
+        try {
+            List<String> hosts = namingServerService.lookup(SERVICE, secondaryServer).getHostsList();
+            crossServerService.propagateState(getLedger(), hosts, this.replicaTS);
+        } catch (Exception e) {
+            throw new FailedToPropagateException();
+        }
     }
 
     public synchronized void addAccount(String name) {
