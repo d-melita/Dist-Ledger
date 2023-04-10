@@ -1,8 +1,5 @@
 package pt.tecnico.distledger.server.domain.operation;
 
-import pt.tecnico.distledger.server.Convertor;
-import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
-
 public class TransferOp extends Operation {
     private String destAccount;
     private int amount;
@@ -30,8 +27,8 @@ public class TransferOp extends Operation {
     }
 
     @Override
-    public DistLedgerCommonDefinitions.Operation accept(Convertor convertor) {
-        return convertor.convert(this);
+    public OperationType getType() {
+        return OperationType.TRANSFER_TO;
     }
 
     @Override

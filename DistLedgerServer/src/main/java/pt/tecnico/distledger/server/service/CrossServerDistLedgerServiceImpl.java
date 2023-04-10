@@ -3,13 +3,18 @@ package pt.tecnico.distledger.server.service;
 import io.grpc.Status;
 import pt.tecnico.distledger.server.domain.ServerState;
 import pt.tecnico.distledger.server.domain.operation.*;
+import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 import pt.ulisboa.tecnico.distledger.contract.distledgerserver.DistLedgerCrossServerServiceGrpc;
 import pt.ulisboa.tecnico.distledger.contract.distledgerserver.CrossServerDistLedger.*;
-import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 
 import pt.tecnico.distledger.utils.Logger;
 
 import io.grpc.stub.StreamObserver;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import pt.tecnico.distledger.server.Convertor;
 
 public class CrossServerDistLedgerServiceImpl
         extends DistLedgerCrossServerServiceGrpc.DistLedgerCrossServerServiceImplBase {
@@ -27,37 +32,25 @@ public class CrossServerDistLedgerServiceImpl
     public void propagateState(PropagateStateRequest request, StreamObserver<PropagateStateResponse> responseObserver) {
         Logger.log("Received propagate state request");
         if (!state.isActive()) {
-            responseObserver.onError(Status.UNAVAILABLE.withDescription(SECONDARY_SERVER_NOT_ACTIVE).asRuntimeException());
+            responseObserver
+                    .onError(Status.UNAVAILABLE.withDescription(SECONDARY_SERVER_NOT_ACTIVE).asRuntimeException());
             return;
         }
         try {
-            Operation operation;
-            for (DistLedgerCommonDefinitions.Operation op : request.getState().getLedgerList()) {
-                switch (op.getType()) {
-                    case OP_CREATE_ACCOUNT:
-                        operation = new CreateOp(op.getUserId());
-                        state.addAccount(op.getUserId());
-                        break;
-                    case OP_DELETE_ACCOUNT:
-                        operation = new DeleteOp(op.getUserId());
-                        state.removeAccount(op.getUserId());
-                        break;
-                    case OP_TRANSFER_TO:
-                        operation = new TransferOp(op.getUserId(), op.getDestUserId(), op.getAmount());
-                        state.updateAccount(op.getUserId(), -op.getAmount());
-                        state.updateAccount(op.getDestUserId(), op.getAmount());
-                        break;
-                    default:
-                        responseObserver.onError(
-                                Status.INVALID_ARGUMENT.withDescription(INVALID_OPERATION_TYPE).asRuntimeException());
-                        return;
-                }
-                state.addOperation(operation);
-            }
+            state.propagateState(getRequestOperationList(request));
             responseObserver.onNext(PropagateStateResponse.newBuilder().build());
             responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver.onError(Status.UNKNOWN.withDescription(FAILED).asRuntimeException());
         }
+    }
+
+    private List<Operation> getRequestOperationList(PropagateStateRequest request) {
+        List<DistLedgerCommonDefinitions.Operation> grpcOperations = request.getState().getLedgerList();
+        List<Operation> operations = new ArrayList<>();
+        for (DistLedgerCommonDefinitions.Operation grpcOperation : grpcOperations) {
+            operations.add(Convertor.convert(grpcOperation));
+        }
+        return operations;
     }
 }

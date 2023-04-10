@@ -2,8 +2,6 @@ package pt.tecnico.distledger.server.domain;
 
 import pt.tecnico.distledger.server.domain.exceptions.*;
 import pt.tecnico.distledger.server.domain.operation.*;
-import pt.tecnico.distledger.server.grpc.CrossServerService;
-import pt.tecnico.distledger.server.grpc.NamingServerService;
 import pt.tecnico.distledger.utils.Logger;
 
 import java.util.List;
@@ -17,28 +15,16 @@ public class ServerState {
     Map<String, Integer> accounts;
 
     private boolean isActive = true;
-
-    private CrossServerService crossServerService;
-    private final NamingServerService namingServerService;
-
-    private static final String SERVICE = "DistLedger";
-    private static final String SECONDARY_QUALIFIER = "B";
     private static final String BROKER = "broker";
 
-    public ServerState(NamingServerService namingServerService) {
+    public ServerState() {
         Logger.log("Initializing ServerState");
         this.ledger = new CopyOnWriteArrayList<>();
         this.accounts = new ConcurrentHashMap<>();
         Logger.log("Creating Broker Account");
         this.accounts.put(BROKER, 1000);
         Logger.log("Broker Account created");
-        this.namingServerService = namingServerService;
         Logger.log("ServerState initialized");
-    }
-
-    public ServerState(NamingServerService namingServerService, CrossServerService crossServerService) {
-        this(namingServerService);
-        this.crossServerService = crossServerService;
     }
 
     public synchronized void addOperation(Operation op) {
@@ -47,13 +33,21 @@ public class ServerState {
         Logger.log("Operation added");
     }
 
-    public synchronized void propagateState(Operation op) {
-        Logger.log("Propagating state to other servers");
-        try {
-            List<String> hosts = namingServerService.lookup(SERVICE, SECONDARY_QUALIFIER).getHostsList();
-            crossServerService.propagateState(op, hosts);
-        } catch (Exception e) {
-            throw new FailedToPropagateException();
+    public synchronized void propagateState(List<Operation> ledgerStateList) {
+        for (Operation operation : ledgerStateList) {
+            addOperation(operation);
+            switch (operation.getType()) {
+                case CREATE_ACCOUNT:
+                    addAccount(operation.getAccount());
+                    break;
+                case DELETE_ACCOUNT:
+                    removeAccount(operation.getAccount());
+                    break;
+                case TRANSFER_TO:
+                    TransferOp transferOp = (TransferOp) operation;
+                    transfer(transferOp.getAccount(), transferOp.getDestAccount(), transferOp.getAmount());
+                    break;
+            }
         }
     }
 
@@ -66,7 +60,6 @@ public class ServerState {
         if (accountExists(name)) {
             throw new AccountAlreadyExistsException(name);
         }
-        propagateState(new CreateOp(name));
         addAccount(name);
         addOperation(new CreateOp(name));
         Logger.log("Account \'" + name + "\' created");
@@ -86,7 +79,6 @@ public class ServerState {
         if (getAccountBalance(name) > 0) {
             throw new AccountHasBalanceException(name);
         }
-        propagateState(new DeleteOp(name));
         removeAccount(name);
         addOperation(new DeleteOp(name));
         Logger.log("Account \'" + name + "\' deleted");
@@ -112,7 +104,6 @@ public class ServerState {
         if (!accountHasBalance(from, amount)) {
             throw new InsufficientFundsException(from);
         }
-        propagateState(new TransferOp(from, to, amount));
         updateAccount(from, -amount);
         updateAccount(to, amount);
         addOperation(new TransferOp(from, to, amount));

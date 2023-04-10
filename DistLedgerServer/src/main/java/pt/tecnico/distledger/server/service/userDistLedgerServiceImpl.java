@@ -6,15 +6,18 @@ import pt.ulisboa.tecnico.distledger.contract.user.UserDistLedger.*;
 import io.grpc.stub.StreamObserver;
 import pt.tecnico.distledger.server.domain.ServerState;
 import pt.tecnico.distledger.server.domain.exceptions.*;
+import pt.tecnico.distledger.server.grpc.CrossServerService;
 
 public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBase {
-    
+
     private final ServerState state;
+    private final CrossServerService crossServerService;
     private static final String DEFAULT_ERROR_MESSAGE = "Operation Failed";
     private static final String INVALID_ARGUMENT_MESSAGE = "Invalid arguments";
 
-    public userDistLedgerServiceImpl(ServerState state) {
+    public userDistLedgerServiceImpl(ServerState state, CrossServerService crossServerService) {
         this.state = state;
+        this.crossServerService = crossServerService;
     }
 
     @Override
@@ -26,6 +29,7 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
         }
         try {
             state.createAccount(request.getUserId());
+            crossServerService.propagateState(state.getLedger());
             CreateAccountResponse response = CreateAccountResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -56,6 +60,7 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
         }
         try {
             state.deleteAccount(request.getUserId());
+            crossServerService.propagateState(state.getLedger());
             DeleteAccountResponse response = DeleteAccountResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -112,6 +117,7 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
         }
         try {
             state.transfer(request.getAccountFrom(), request.getAccountTo(), request.getAmount());
+            crossServerService.propagateState(state.getLedger());
             TransferToResponse response = TransferToResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();

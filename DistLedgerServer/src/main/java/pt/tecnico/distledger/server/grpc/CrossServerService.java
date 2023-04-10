@@ -9,6 +9,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import pt.ulisboa.tecnico.distledger.contract.distledgerserver.DistLedgerCrossServerServiceGrpc;
 import pt.ulisboa.tecnico.distledger.contract.distledgerserver.CrossServerDistLedger.*;
+import pt.ulisboa.tecnico.distledger.contract.namingserver.NamingServerDistLedger.LookupResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,24 +17,27 @@ import java.util.List;
 import java.util.Map;
 
 public class CrossServerService {
-
+    private static final String SERVICE = "DistLedger";
+    private static final String SECONDARY_QUALIFIER = "B";
+    NamingServerService namingServerService;
     private final Map<String, DistLedgerCrossServerServiceGrpc.DistLedgerCrossServerServiceBlockingStub> stubs;
     private final Map<String, ManagedChannel> channels;
-    private final Convertor convertor;
 
-    public CrossServerService() {
-        convertor = new Convertor();
+    public CrossServerService(NamingServerService namingServerService) {
         stubs = new HashMap<>();
         channels = new HashMap<>();
+        this.namingServerService = namingServerService;
     }
 
-    public void propagateState(Operation op, List<String> hosts) {
-        List<DistLedgerCommonDefinitions.Operation> ops = new ArrayList<>();
-        ops.add(op.accept(convertor));
-        LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(ops).build();
+    public void propagateState(List<Operation> operationList) {
+        List<DistLedgerCommonDefinitions.Operation> operations = new ArrayList<>();
+        for (Operation operation : operationList) {
+            operations.add(Convertor.convert(operation));
+        }
+        LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(operations).build();
         PropagateStateRequest request = PropagateStateRequest.newBuilder().setState(ledgerState).build();
-
-        for (String host : hosts) {
+        LookupResponse hosts = namingServerService.lookup(SERVICE, SECONDARY_QUALIFIER);
+        for (String host : hosts.getHostsList()) {
             if (stubs.containsKey(host)) {
                 stubs.get(host).propagateState(request);
             } else {

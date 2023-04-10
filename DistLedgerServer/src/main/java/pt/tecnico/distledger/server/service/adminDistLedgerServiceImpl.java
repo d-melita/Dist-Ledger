@@ -14,8 +14,7 @@ import java.util.List;
 import io.grpc.stub.StreamObserver;
 import pt.tecnico.distledger.server.domain.ServerState;
 
-public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImplBase{
-
+public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImplBase {
     private final ServerState state;
     private static final String ACTIVATION_FAILED = "Server activation failed";
     private static final String DEACTIVATION_FAILED = "Server deactivation failed";
@@ -55,21 +54,22 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     public void getLedgerState(getLedgerStateRequest request, StreamObserver<getLedgerStateResponse> responseObserver) {
         // get operations from ledger
         try {
-        Convertor convertor = new Convertor();
-        List<Operation> operations = state.getLedger();
-        List<DistLedgerCommonDefinitions.Operation> ops = new ArrayList<>();
-
-        for (Operation op : operations) {
-            ops.add(op.accept(convertor));
-        }
-
-        LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(ops).build();
-        getLedgerStateResponse response = getLedgerStateResponse.newBuilder().setLedgerState(ledgerState).build(); 
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
+            LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(convertOperations(state.getLedger()))
+                    .build();
+            getLedgerStateResponse response = getLedgerStateResponse.newBuilder().setLedgerState(ledgerState).build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver
                     .onError(Status.UNKNOWN.withDescription(LEDGER_FAILED).asRuntimeException());
         }
+    }
+
+    private List<DistLedgerCommonDefinitions.Operation> convertOperations(List<Operation> operations) {
+        List<DistLedgerCommonDefinitions.Operation> ops = new ArrayList<>();
+        for (Operation op : operations) {
+            ops.add(Convertor.convert(op));
+        }
+        return ops;
     }
 }

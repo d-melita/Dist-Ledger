@@ -18,7 +18,7 @@ public class ServerMain {
     private static final String SERVICE = "DistLedger";
     private static final int NS_PORT = 5001;
     private static final NamingServerService namingServerService = new NamingServerService(LOCALHOST, NS_PORT);
-    private static final CrossServerService crossServerService = new CrossServerService();
+    private static final CrossServerService crossServerService = new CrossServerService(namingServerService);
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -44,9 +44,9 @@ public class ServerMain {
         ServerState state = null;
         try {
             if (namingServerService.lookup(SERVICE, qualifier).getHostsCount() == 0 && qualifier.equals("A")) {
-                state = new ServerState(namingServerService, crossServerService);
+                state = new ServerState();
             } else if (qualifier.equals("B")) {
-                state = new SecondaryServerState(namingServerService);
+                state = new SecondaryServerState();
             } else {
                 System.out.println("Invalid server qualifier");
                 System.exit(1);
@@ -58,7 +58,7 @@ public class ServerMain {
             System.exit(1);
         }
 
-        final BindableService userImpl = new userDistLedgerServiceImpl(state);
+        final BindableService userImpl = new userDistLedgerServiceImpl(state, crossServerService);
         Logger.log("userImpl created");
         final BindableService adminImpl = new adminDistLedgerServiceImpl(state);
         Logger.log("adminImpl created");
@@ -78,16 +78,15 @@ public class ServerMain {
 
         // Server threads are running in the background.
         System.out.println("Server started");
-        
+
         // Shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("\nServer shut down");
             namingServerService.unregister(SERVICE, host_address);
             namingServerService.shutdown();
             crossServerService.shutdownAll();
-        }
-        ));
-        
+        }));
+
         // Do not exit the main thread. Wait until server is terminated.
         server.awaitTermination();
     }
