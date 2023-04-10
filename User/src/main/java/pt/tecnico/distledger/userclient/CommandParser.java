@@ -155,7 +155,7 @@ public class CommandParser {
     }
 
     private void updateTS(List<Integer> tempTS){
-        for(int i = 0; i < prevTS.size(); i++){
+        for(Integer i: tempTS){
             if(tempTS.get(i) > prevTS.get(i)){
                 prevTS.set(i, tempTS.get(i));
             }
