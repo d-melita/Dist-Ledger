@@ -91,13 +91,13 @@ public class ServerState {
         if (accountExists(name)) {
             throw new AccountAlreadyExistsException(name);
         }
-        CreateOp op = new CreateOp(name, prevTS);
+        CreateOp op = new CreateOp(name, prevTS, null);
         updateReplicaTS();
         if (operationIsStable(prevTS)) {
             op.setTS(getReplicaTS());
             addAccount(name);
         }
-        addOperation(new CreateOp(name, prevTS));
+        addOperation(new CreateOp(name, prevTS, null));
         Logger.log("Account \'" + name + "\' created");
     }
 
@@ -115,7 +115,7 @@ public class ServerState {
         if (getAccountBalance(name, getReplicaTS()) > 0) {
             throw new AccountHasBalanceException(name);
         }
-        DeleteOp op = new DeleteOp(name, prevTS);
+        DeleteOp op = new DeleteOp(name, prevTS, null);
         if (operationIsStable(prevTS)) {
             op.setTS(getReplicaTS());
             removeAccount(name);
@@ -144,7 +144,7 @@ public class ServerState {
         if (!accountHasBalance(from, amount)) {
             throw new InsufficientFundsException(from);
         }
-        TransferOp op = new TransferOp(from, to, amount, prevTS);
+        TransferOp op = new TransferOp(from, to, amount, prevTS, null);
         updateReplicaTS();
         if (operationIsStable(prevTS)) {
             op.setTS(getReplicaTS());
@@ -220,39 +220,69 @@ public class ServerState {
         }
     }
 
-    public boolean isBiggerTS(List<Integer> ts) {
-        if (ts == null) {
+    private void updateReplicaTSAfterGossip(Operation op) {
+        if (this.qualifier.equals("A")){
+            this.replicaTS.set(1, op.getTS().get(1));
+        }
+        else if (this.qualifier.equals("B")){
+            this.replicaTS.set(0, op.getTS().get(0));
+        }
+    }
+
+    public boolean isBiggerTS(List<Integer> prevTS) {
+        // server TS > operation prevTS
+        if (prevTS == null) {
             return true;
         }
-        for (int i = 0; i < ts.size(); i++) {
-            if (ts.get(i) > this.replicaTS.get(i)) {
+        for (int i = 0; i < prevTS.size(); i++) {
+            if (prevTS.get(i) > this.replicaTS.get(i)) {
                 return false;
-            }
+            }   
         }
         return true;
+    }
+
+    public void executeOperation(Operation op) {
+        if (op instanceof CreateOp) {
+            addAccount(((CreateOp) op).getAccount());
+        } else if (op instanceof DeleteOp) {
+            removeAccount(((DeleteOp) op).getAccount());
+        } else if (op instanceof TransferOp) {
+            TransferOp transferOp = (TransferOp) op;
+            updateAccount(transferOp.getAccount(), -transferOp.getAmount());
+            updateAccount(transferOp.getDestAccount(), transferOp.getAmount());
+        }
     }
 
     public void propagateState(List<Operation> ledger) {
         Logger.log("Propagating state");
         for (Operation op : ledger) {
-            if (isBiggerTS(op.getTS())) {
-                addOperation(op);
+            if (isBiggerTS(op.getTS())) // duplicate operation
+                continue;
+            if (isBiggerTS(op.getPrevTS()) && !isBiggerTS(op.getTS())) { // operation is stable and can be executed
+                executeOperation(op);
+                updateReplicaTSAfterGossip(op);
             }
+            addOperation(op);
         }
         boolean noMoreExecutions = false;
+        // now we will go through all operations in the ledger and execute them if they are stable, updating the replicaTS after each execution
         while (!noMoreExecutions) {
+            noMoreExecutions = true;
             for (Operation op : getLedger()) {
                 if (isBiggerTS(op.getPrevTS())) {
-                    noMoreExecutions = false;
-                    if (op instanceof CreateOp) {
-                        addAccount(((CreateOp) op).getAccount());
-                    } else if (op instanceof DeleteOp) {
-                        removeAccount(((DeleteOp) op).getAccount());
-                    } else if (op instanceof TransferOp) {
-                        TransferOp transferOp = (TransferOp) op;
-                        updateAccount(transferOp.getAccount(), -transferOp.getAmount());
-                        updateAccount(transferOp.getDestAccount(), transferOp.getAmount());
+                    executeOperation(op);
+                    // updateReplicaTS
+                    // set operation TS if it is null
+                    if (op.getTS() == null) {
+                        updateReplicaTS();
+                        op.setTS(getReplicaTS());
                     }
+                    else {
+                        updateReplicaTSAfterGossip(op);
+                    }
+                    noMoreExecutions = false; // if we can permorm an operation, we need to go through the ledger again
+                    
                 }
             }
         }

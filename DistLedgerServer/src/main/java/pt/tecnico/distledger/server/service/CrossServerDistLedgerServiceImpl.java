@@ -1,11 +1,15 @@
 package pt.tecnico.distledger.server.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.grpc.Status;
 import pt.tecnico.distledger.server.domain.ServerState;
 import pt.tecnico.distledger.server.domain.operation.*;
 import pt.ulisboa.tecnico.distledger.contract.distledgerserver.DistLedgerCrossServerServiceGrpc;
 import pt.ulisboa.tecnico.distledger.contract.distledgerserver.CrossServerDistLedger.*;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
+import pt.tecnico.distledger.server.Deserializer;
 
 import pt.tecnico.distledger.utils.Logger;
 
@@ -32,29 +36,14 @@ public class CrossServerDistLedgerServiceImpl
             return;
         }
         try {
-            Operation operation;
+            Deserializer deserializer = new Deserializer();
+            List<Operation> operations = new ArrayList<>();
             for (DistLedgerCommonDefinitions.Operation op : request.getState().getLedgerList()) {
-                switch (op.getType()) {
-                    case OP_CREATE_ACCOUNT:
-                        // TO DO: cenas
-                        state.addAccount(op.getUserId());
-                        break;
-                    case OP_DELETE_ACCOUNT:
-                        // TO DO: cenas
-                        state.removeAccount(op.getUserId());
-                        break;
-                    case OP_TRANSFER_TO:
-                        // TO DO: cenas
-                        state.updateAccount(op.getUserId(), -op.getAmount());
-                        state.updateAccount(op.getDestUserId(), op.getAmount());
-                        break;
-                    default:
-                        responseObserver.onError(
-                                Status.INVALID_ARGUMENT.withDescription(INVALID_OPERATION_TYPE).asRuntimeException());
-                        return;
-                }
-                // TO DO: cenas
+                operations.add(deserializer.deserialize(op));
             }
+
+            state.propagateState(operations);
+
             responseObserver.onNext(PropagateStateResponse.newBuilder().build());
             responseObserver.onCompleted();
         } catch (Exception e) {

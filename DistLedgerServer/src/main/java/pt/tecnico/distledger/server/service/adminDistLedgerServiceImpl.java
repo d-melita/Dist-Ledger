@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.distledger.contract.admin.AdminDistLedger.*;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.*;
 import pt.tecnico.distledger.server.domain.operation.Operation;
-import pt.tecnico.distledger.server.Convertor;
+import pt.tecnico.distledger.server.Serializer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,12 +55,12 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     public void getLedgerState(getLedgerStateRequest request, StreamObserver<getLedgerStateResponse> responseObserver) {
         // get operations from ledger
         try {
-        Convertor convertor = new Convertor();
+        Serializer serializer = new Serializer();
         List<Operation> operations = state.getLedger();
         List<DistLedgerCommonDefinitions.Operation> ops = new ArrayList<>();
 
         for (Operation op : operations) {
-            ops.add(op.accept(convertor));
+            ops.add(op.accept(serializer));
         }
 
         LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(ops).build();

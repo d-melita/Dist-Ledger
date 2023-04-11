@@ -5,27 +5,31 @@ import pt.tecnico.distledger.server.domain.operation.TransferOp;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.OperationType;
 
-public class Convertor {
-    public DistLedgerCommonDefinitions.Operation convert(CreateOp op){
+public class Serializer {
+    public DistLedgerCommonDefinitions.Operation serialize(CreateOp op){
         return DistLedgerCommonDefinitions.Operation.newBuilder()
         .setType(OperationType.OP_CREATE_ACCOUNT)
         .setUserId(op.getAccount())
+        .addAllPrevTS(op.getPrevTS())
+        .addAllTS(op.getTS())
         .build();
     }
 
-    public DistLedgerCommonDefinitions.Operation convert(DeleteOp op){
+    public DistLedgerCommonDefinitions.Operation serialize(DeleteOp op){
         return DistLedgerCommonDefinitions.Operation.newBuilder()
         .setType(OperationType.OP_DELETE_ACCOUNT)
         .setUserId(op.getAccount())
         .build();
     }
 
-    public DistLedgerCommonDefinitions.Operation convert(TransferOp op){
+    public DistLedgerCommonDefinitions.Operation serialize(TransferOp op){
         return DistLedgerCommonDefinitions.Operation.newBuilder()
         .setType(OperationType.OP_TRANSFER_TO)
         .setUserId(op.getAccount())
         .setDestUserId(op.getDestAccount())
         .setAmount(op.getAmount())
+        .addAllPrevTS(op.getPrevTS())
+        .addAllTS(op.getTS())
         .build();
     }
 }

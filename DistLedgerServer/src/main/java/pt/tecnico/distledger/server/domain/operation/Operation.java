@@ -1,6 +1,6 @@
 package pt.tecnico.distledger.server.domain.operation;
 
-import pt.tecnico.distledger.server.Convertor;
+import pt.tecnico.distledger.server.Serializer;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 
 import java.util.List;
@@ -13,9 +13,10 @@ public abstract class Operation {
     private List<Integer> TS = new ArrayList<>();
     private boolean isStable = false;
 
-    public Operation(String fromAccount, List<Integer> prevTS) {
+    public Operation(String fromAccount, List<Integer> prevTS, List<Integer> TS) {
         this.account = fromAccount;
         this.prevTS = prevTS;
+        this.TS = TS;
     }
 
     public List<Integer> getPrevTS() {
@@ -39,7 +40,7 @@ public abstract class Operation {
         this.account = account;
     }
 
-    public DistLedgerCommonDefinitions.Operation accept(Convertor convertor) {
+    public DistLedgerCommonDefinitions.Operation accept(Serializer serializer) {
         throw new UnsupportedOperationException();
     }
 

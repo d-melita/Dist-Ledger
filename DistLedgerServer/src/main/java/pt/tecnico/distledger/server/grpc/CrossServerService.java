@@ -3,7 +3,7 @@ package pt.tecnico.distledger.server.grpc;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.*;
 import pt.tecnico.distledger.server.domain.operation.Operation;
-import pt.tecnico.distledger.server.Convertor;
+import pt.tecnico.distledger.server.Serializer;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -19,10 +19,10 @@ public class CrossServerService {
 
     private final Map<String, DistLedgerCrossServerServiceGrpc.DistLedgerCrossServerServiceBlockingStub> stubs;
     private final Map<String, ManagedChannel> channels;
-    private final Convertor convertor;
+    private final Serializer serializer;
 
     public CrossServerService() {
-        convertor = new Convertor();
+        serializer = new Serializer();
         stubs = new HashMap<>();
         channels = new HashMap<>();
     }
@@ -30,7 +30,7 @@ public class CrossServerService {
     public void propagateState(List<Operation> operationsList, List<String> hosts, List<Integer> replicaTS) {
         List<DistLedgerCommonDefinitions.Operation> operations = new ArrayList<>();
         for (Operation op : operationsList) {
-            operations.add(op.accept(convertor));
+            operations.add(op.accept(serializer));
         }
         LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(operations).build();
         PropagateStateRequest request = PropagateStateRequest.newBuilder().setState(ledgerState)

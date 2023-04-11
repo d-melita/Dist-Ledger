@@ -1,6 +1,6 @@
 package pt.tecnico.distledger.server.domain.operation;
 
-import pt.tecnico.distledger.server.Convertor;
+import pt.tecnico.distledger.server.Serializer;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 
 import java.util.List;
@@ -9,8 +9,8 @@ public class TransferOp extends Operation {
     private String destAccount;
     private int amount;
 
-    public TransferOp(String fromAccount, String destAccount, int amount, List<Integer> prevTS) {
-        super(fromAccount, prevTS);
+    public TransferOp(String fromAccount, String destAccount, int amount, List<Integer> prevTS, List<Integer> TS) {
+        super(fromAccount, prevTS, TS);
         this.destAccount = destAccount;
         this.amount = amount;
     }
@@ -32,8 +32,8 @@ public class TransferOp extends Operation {
     }
 
     @Override
-    public DistLedgerCommonDefinitions.Operation accept(Convertor convertor) {
-        return convertor.convert(this);
+    public DistLedgerCommonDefinitions.Operation accept(Serializer serializer) {
+        return serializer.serialize(this);
     }
 
     @Override
