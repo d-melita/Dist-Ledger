@@ -1,5 +1,8 @@
 package pt.tecnico.distledger.server.domain.operation;
 
+import pt.tecnico.distledger.server.OperationConverter;
+import pt.tecnico.distledger.server.domain.ServerState;
+
 public class TransferOp extends Operation {
     private String destAccount;
     private int amount;
@@ -14,29 +17,28 @@ public class TransferOp extends Operation {
         return destAccount;
     }
 
-    public void setDestAccount(String destAccount) {
-        this.destAccount = destAccount;
-    }
-
     public int getAmount() {
         return amount;
     }
 
-    public void setAmount(int amount) {
-        this.amount = amount;
+    @Override
+    public void convert(OperationConverter converter) {
+        converter.convert(this);
     }
 
     @Override
-    public OperationType getType() {
-        return OperationType.TRANSFER_TO;
+    public void executeOperation(ServerState state) {
+        // TODO: to avoid exposing server to Operation, we could create an Executor
+        // class for this
+        state.executeOperation(this);
     }
 
     @Override
     public String toString() {
         return "TransferOp{" +
                 "account='" + getAccount() + '\'' +
-                ", destAccount='" + destAccount + '\'' +
-                ", amount=" + amount +
+                ", destAccount='" + getDestAccount() + '\'' +
+                ", amount=" + getAmount() +
                 '}';
     }
 }

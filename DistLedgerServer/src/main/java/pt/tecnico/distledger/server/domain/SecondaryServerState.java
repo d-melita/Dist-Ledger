@@ -15,7 +15,7 @@ public class SecondaryServerState extends ServerState {
     }
 
     @Override
-    public synchronized void transfer(String from, String to, Integer amount) {
+    public synchronized void transferTo(String from, String to, Integer amount) {
         throw new SecondaryServerWriteOperationException();
     }
 }

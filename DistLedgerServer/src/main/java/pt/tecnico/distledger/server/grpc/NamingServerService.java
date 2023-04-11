@@ -5,10 +5,9 @@ import io.grpc.ManagedChannelBuilder;
 import pt.ulisboa.tecnico.distledger.contract.namingserver.NamingServerServiceGrpc;
 import pt.ulisboa.tecnico.distledger.contract.namingserver.NamingServerDistLedger.*;
 
-public class NamingServerService{
+public class NamingServerService {
     private final NamingServerServiceGrpc.NamingServerServiceBlockingStub stub;
     private final ManagedChannel channel;
-
 
     public NamingServerService(String host, int port) {
         channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
@@ -27,6 +26,11 @@ public class NamingServerService{
 
     public LookupResponse lookup(String service, String qualifier) {
         LookupRequest request = LookupRequest.newBuilder().setService(service).setQualifier(qualifier).build();
+        return stub.lookup(request);
+    }
+
+    public LookupResponse lookup(String service) {
+        LookupRequest request = LookupRequest.newBuilder().setService(service).build();
         return stub.lookup(request);
     }
 

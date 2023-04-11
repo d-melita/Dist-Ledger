@@ -1,5 +1,8 @@
 package pt.tecnico.distledger.server.domain.operation;
 
+import pt.tecnico.distledger.server.OperationConverter;
+import pt.tecnico.distledger.server.domain.ServerState;
+
 public abstract class Operation {
 
     public enum OperationType {
@@ -18,16 +21,14 @@ public abstract class Operation {
         return account;
     }
 
-    public abstract OperationType getType();
+    public abstract void convert(OperationConverter converter);
 
-    public void setAccount(String account) {
-        this.account = account;
-    }
+    public abstract void executeOperation(ServerState state);
 
     @Override
     public String toString() {
         return "Operation{" +
-                "account='" + account + '\'' +
+                "account='" + getAccount() + '\'' +
                 '}';
     }
 }

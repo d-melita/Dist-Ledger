@@ -18,7 +18,7 @@ public class ServerMain {
     private static final String SERVICE = "DistLedger";
     private static final int NS_PORT = 5001;
     private static final NamingServerService namingServerService = new NamingServerService(LOCALHOST, NS_PORT);
-    private static final CrossServerService crossServerService = new CrossServerService(namingServerService);
+    private static final CrossServerService crossServerService = new CrossServerService(namingServerService, SERVICE);
 
     public static void main(String[] args) throws IOException, InterruptedException {
 

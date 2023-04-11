@@ -22,7 +22,7 @@ public class ServerState {
         this.ledger = new CopyOnWriteArrayList<>();
         this.accounts = new ConcurrentHashMap<>();
         Logger.log("Creating Broker Account");
-        this.accounts.put(BROKER, 1000);
+        this.addAccount(BROKER, 1000);
         Logger.log("Broker Account created");
         Logger.log("ServerState initialized");
     }
@@ -33,25 +33,8 @@ public class ServerState {
         Logger.log("Operation added");
     }
 
-    public synchronized void propagateState(List<Operation> ledgerStateList) {
-        for (Operation operation : ledgerStateList) {
-            addOperation(operation);
-            switch (operation.getType()) {
-                case CREATE_ACCOUNT:
-                    addAccount(operation.getAccount());
-                    break;
-                case DELETE_ACCOUNT:
-                    removeAccount(operation.getAccount());
-                    break;
-                case TRANSFER_TO:
-                    TransferOp transferOp = (TransferOp) operation;
-                    transfer(transferOp.getAccount(), transferOp.getDestAccount(), transferOp.getAmount());
-                    break;
-            }
-        }
-    }
-
     // User Interface Operations
+
     public synchronized void createAccount(String name) {
         Logger.log("Creating account \'" + name + "\'");
         if (!isActive) {
@@ -84,7 +67,7 @@ public class ServerState {
         Logger.log("Account \'" + name + "\' deleted");
     }
 
-    public synchronized void transfer(String from, String to, Integer amount) {
+    public synchronized void transferTo(String from, String to, Integer amount) {
         Logger.log("Transferring " + amount + " from \'" + from + "\' to \'" + to + "\'");
         if (!isActive) {
             throw new ServerUnavailableException();
@@ -121,14 +104,6 @@ public class ServerState {
         return accounts.get(name);
     }
 
-    public synchronized boolean accountExists(String name) {
-        return accounts.get(name) != null;
-    }
-
-    public synchronized boolean accountHasBalance(String name, int amount) {
-        return accounts.get(name) >= amount;
-    }
-
     // Admin interface operations
 
     public synchronized void activate() {
@@ -143,35 +118,87 @@ public class ServerState {
         Logger.log("Server deactivated");
     }
 
-    public synchronized boolean isActive() {
-        return this.isActive;
+    public List<Operation> getLedgerState() {
+        Logger.log("Admin Getting ledger");
+        return getLedger();
+    }
+
+    // Propagate ledger operations
+
+    public synchronized void receivePropagatedLedger(List<Operation> ledger) {
+        Logger.log("Receiving setting ledger");
+        this.ledger.clear();
+        this.ledger.addAll(ledger);
+        // TODO: for gossip we will probably need to change this method
+        executeLedgerOperations();
+        Logger.log("Ledger set");
+    }
+
+    private void executeLedgerOperations() {
+        // TODO: for gossip we will probably need to change this method
+        // TODO: this will execute all the ledger operations again, we should only
+        // execute the new ones, as it is right now it is wrong
+        // TODO: this might be cleaner and better/easier to implement with a dedicated
+        // Executor class
+        Logger.log("Executing ledger operations");
+        for (Operation op : ledger) {
+            op.executeOperation(this);
+        }
+    }
+
+    public void executeOperation(CreateOp op) {
+        Logger.log("Executing create operation");
+        addAccount(op.getAccount());
+    }
+
+    public void executeOperation(DeleteOp op) {
+        Logger.log("Executing delete operation");
+        removeAccount(op.getAccount());
+    }
+
+    public void executeOperation(TransferOp op) {
+        Logger.log("Executing transfer operation");
+        updateAccount(op.getAccount(), -op.getAmount());
+        updateAccount(op.getDestAccount(), op.getAmount());
+    }
+
+    // Getters and Setters
+
+    private synchronized void addAccount(String name) {
+        this.accounts.put(name, 0);
+    }
+
+    private synchronized void addAccount(String name, int amount) {
+        this.accounts.put(name, amount);
+    }
+
+    private synchronized void removeAccount(String name) {
+        this.accounts.remove(name);
+    }
+
+    private synchronized void updateAccount(String name, int amount) {
+        accounts.put(name, accounts.get(name) + amount);
     }
 
     public List<Operation> getLedger() {
-        Logger.log("Admin getting ledger");
         // create a copy of the ledger to avoid concurrent modification
         List<Operation> ledgerCopy = new CopyOnWriteArrayList<>();
         ledgerCopy.addAll(ledger);
         return ledgerCopy;
     }
 
-    public synchronized void setLedger(List<Operation> ledger) {
-        Logger.log("Admin setting ledger");
-        this.ledger.clear();
-        this.ledger.addAll(ledger);
-        Logger.log("Ledger set");
+    // Checker methods
+
+    public synchronized boolean isActive() {
+        return this.isActive;
     }
 
-    public synchronized void addAccount(String name) {
-        this.accounts.put(name, 0);
+    private synchronized boolean accountExists(String name) {
+        return accounts.get(name) != null;
     }
 
-    public synchronized void removeAccount(String name) {
-        this.accounts.remove(name);
-    }
-
-    public synchronized void updateAccount(String name, int amount) {
-        accounts.put(name, accounts.get(name) + amount);
+    private synchronized boolean accountHasBalance(String name, int amount) {
+        return accounts.get(name) >= amount;
     }
 
     @Override

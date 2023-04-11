@@ -6,12 +6,11 @@ import pt.ulisboa.tecnico.distledger.contract.admin.AdminDistLedger.*;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.*;
 import pt.tecnico.distledger.server.domain.operation.Operation;
-import pt.tecnico.distledger.server.Convertor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.grpc.stub.StreamObserver;
+import pt.tecnico.distledger.server.OperationConverter;
 import pt.tecnico.distledger.server.domain.ServerState;
 
 public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImplBase {
@@ -27,7 +26,9 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     @Override
     public void activate(ActivateRequest request, StreamObserver<ActivateResponse> responseObserver) {
         try {
+            // activate server
             state.activate();
+            // return response
             ActivateResponse response = ActivateResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -40,7 +41,9 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     @Override
     public void deactivate(DeactivateRequest request, StreamObserver<DeactivateResponse> responseObserver) {
         try {
+            // deactivate server
             DeactivateResponse response = DeactivateResponse.newBuilder().build();
+            // return response
             state.deactivate();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -54,8 +57,11 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     public void getLedgerState(getLedgerStateRequest request, StreamObserver<getLedgerStateResponse> responseObserver) {
         // get operations from ledger
         try {
-            LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(convertOperations(state.getLedger()))
+            // get ledger state
+            LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(
+                    convertOperationsToProto(state.getLedger()))
                     .build();
+            // return response
             getLedgerStateResponse response = getLedgerStateResponse.newBuilder().setLedgerState(ledgerState).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -65,11 +71,8 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
         }
     }
 
-    private List<DistLedgerCommonDefinitions.Operation> convertOperations(List<Operation> operations) {
-        List<DistLedgerCommonDefinitions.Operation> ops = new ArrayList<>();
-        for (Operation op : operations) {
-            ops.add(Convertor.convert(op));
-        }
-        return ops;
+    private List<DistLedgerCommonDefinitions.Operation> convertOperationsToProto(List<Operation> operationList) {
+        OperationConverter converter = new OperationConverter();
+        return converter.convertToProto(operationList);
     }
 }

@@ -2,8 +2,8 @@ package pt.tecnico.distledger.server.grpc;
 
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.*;
+import pt.tecnico.distledger.server.OperationConverter;
 import pt.tecnico.distledger.server.domain.operation.Operation;
-import pt.tecnico.distledger.server.Convertor;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -17,27 +17,25 @@ import java.util.List;
 import java.util.Map;
 
 public class CrossServerService {
-    private static final String SERVICE = "DistLedger";
-    private static final String SECONDARY_QUALIFIER = "B";
+    private final String service;
     NamingServerService namingServerService;
     private final Map<String, DistLedgerCrossServerServiceGrpc.DistLedgerCrossServerServiceBlockingStub> stubs;
     private final Map<String, ManagedChannel> channels;
 
-    public CrossServerService(NamingServerService namingServerService) {
+    public CrossServerService(NamingServerService namingServerService, String service) {
         stubs = new HashMap<>();
         channels = new HashMap<>();
         this.namingServerService = namingServerService;
+        this.service = service;
     }
 
     public void propagateState(List<Operation> operationList) {
-        List<DistLedgerCommonDefinitions.Operation> operations = new ArrayList<>();
-        for (Operation operation : operationList) {
-            operations.add(Convertor.convert(operation));
-        }
-        LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(operations).build();
+        // send response
+        LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(convertOperationsToProto(operationList))
+                .build();
         PropagateStateRequest request = PropagateStateRequest.newBuilder().setState(ledgerState).build();
-        LookupResponse hosts = namingServerService.lookup(SERVICE, SECONDARY_QUALIFIER);
-        for (String host : hosts.getHostsList()) {
+        // TODO: we are propagating to ourselves, we should not
+        for (String host : searchForServers()) {
             if (stubs.containsKey(host)) {
                 stubs.get(host).propagateState(request);
             } else {
@@ -52,5 +50,20 @@ public class CrossServerService {
         for (ManagedChannel channel : channels.values()) {
             channel.shutdown();
         }
+        namingServerService.shutdown();
+    }
+
+    private List<String> searchForServers() {
+        List<String> servers = new ArrayList<>();
+        LookupResponse hosts = namingServerService.lookup(service);
+        for (String host : hosts.getHostsList()) {
+            servers.add(host);
+        }
+        return servers;
+    }
+
+    private List<DistLedgerCommonDefinitions.Operation> convertOperationsToProto(List<Operation> operationList) {
+        OperationConverter converter = new OperationConverter();
+        return converter.convertToProto(operationList);
     }
 }

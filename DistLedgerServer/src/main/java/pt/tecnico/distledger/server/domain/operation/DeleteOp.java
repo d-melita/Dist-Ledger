@@ -1,5 +1,8 @@
 package pt.tecnico.distledger.server.domain.operation;
 
+import pt.tecnico.distledger.server.OperationConverter;
+import pt.tecnico.distledger.server.domain.ServerState;
+
 public class DeleteOp extends Operation {
 
     public DeleteOp(String account) {
@@ -7,8 +10,15 @@ public class DeleteOp extends Operation {
     }
 
     @Override
-    public OperationType getType() {
-        return OperationType.DELETE_ACCOUNT;
+    public void convert(OperationConverter converter) {
+        converter.convert(this);
+    }
+
+    @Override
+    public void executeOperation(ServerState state) {
+        // TODO: to avoid exposing server to Operation, we could create an Executor
+        // class for this
+        state.executeOperation(this);
     }
 
     @Override
