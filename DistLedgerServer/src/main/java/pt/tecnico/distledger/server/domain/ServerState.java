@@ -48,10 +48,9 @@ public class ServerState {
     }
 
     private boolean operationIsStable(List<Integer> prevTS) {
-        for (Integer i : prevTS) {
-            if (i > replicaTS.get(prevTS.indexOf(i))) {
+        for (int i = 0; i < prevTS.size(); i++){
+            if (prevTS.get(i) > getReplicaTS().get(i))
                 return false;
-            }
         }
         return true;
     }
@@ -60,6 +59,8 @@ public class ServerState {
 
     public synchronized void createAccount(String name, List<Integer> prevTS) {
         Logger.log("Creating account \'" + name + "\'");
+        Logger.log("User prevTS is: " + prevTS);
+        Logger.log("Replica TS is: " + getReplicaTS());
         if (!isActive) {
             throw new ServerUnavailableException();
         }
@@ -72,8 +73,9 @@ public class ServerState {
             op.setTS(getReplicaTS());
             addAccount(name);
         }
-        addOperation(new CreateOp(name, prevTS, null));
+        addOperation(op);
         Logger.log("Account \'" + name + "\' created");
+        Logger.log("At the end, Replica TS is: " + getReplicaTS());
     }
 
     public synchronized void deleteAccount(String name, List<Integer> prevTS) {
@@ -101,6 +103,8 @@ public class ServerState {
 
     public synchronized void transferTo(String from, String to, Integer amount, List<Integer> prevTS) {
         Logger.log("Transferring " + amount + " from \'" + from + "\' to \'" + to + "\'");
+        Logger.log("User prevTS is: " + prevTS);
+        Logger.log("Replica TS is: " + getReplicaTS());
         if (!isActive) {
             throw new ServerUnavailableException();
         }
@@ -128,10 +132,13 @@ public class ServerState {
         }
         addOperation(op);
         Logger.log("Transfer completed");
+        Logger.log("At the end, Replica TS is: " + getReplicaTS());
     }
 
     public synchronized Integer getAccountBalance(String name, List<Integer> prevTS) {
         Logger.log("Getting balance of account \'" + name + "\'");
+        Logger.log("User prevTS is: " + prevTS);
+        Logger.log("Replica TS is: " + getReplicaTS());
         if (!isActive) {
             throw new ServerUnavailableException();
         }
@@ -141,6 +148,7 @@ public class ServerState {
         if (!accountExists(name)) {
             throw new AccountDoesntExistException(name);
         }
+        Logger.log("At the end, Replica TS is: " + getReplicaTS());
         return accounts.get(name);
     }
 
@@ -168,32 +176,37 @@ public class ServerState {
     public void propagateState(List<Operation> ledger) {
         Logger.log("Propagating state");
         for (Operation op : ledger) {
-            if (isBiggerTS(op.getTS())) // duplicate operation
+            Logger.log("Op TS:" + op.getTS());
+            Logger.log("Replica TS:" + getReplicaTS());
+            if (replicaTSBiggerThan(op.getTS())) // duplicate operation
                 continue;
-            if (isBiggerTS(op.getPrevTS()) && !isBiggerTS(op.getTS())) { // operation is stable and can be executed
+            if (replicaTSBiggerThan(op.getPrevTS())) { // operation is stable and can be executed
                 op.executeOperation(this);
                 updateReplicaTSAfterGossip(op);
             }
             addOperation(op);
         }
+        Logger.log("State propagated, now going to execute ledger");
         boolean noMoreExecutions = false;
         // now we will go through all operations in the ledger and execute them if they
         // are stable, updating the replicaTS after each execution
         while (!noMoreExecutions) {
             noMoreExecutions = true;
             for (Operation op : getLedger()) {
-                if (isBiggerTS(op.getPrevTS())) {
+                Logger.log("Checking operation " + op.toString() + " for execution");
+                if (replicaTSBiggerThan(op.getTS()))
+                    continue; // ignore operations already executed
+                
+                if (replicaTSBiggerThan(op.getPrevTS())) { // prevTS < replicaTS -> we can execute the operation
                     op.executeOperation(this);
-                    // updateReplicaTS
                     // set operation TS if it is null
-                    if (op.getTS() == null) {
+                    if (op.getTS() == null) { // if the operation wasn't stable when it was added to the ledger
                         updateReplicaTS();
                         op.setTS(getReplicaTS());
                     } else {
                         updateReplicaTSAfterGossip(op);
                     }
                     noMoreExecutions = false; // if we can permorm an operation, we need to go through the ledger again
-
                 }
             }
         }
@@ -272,7 +285,7 @@ public class ServerState {
         }
     }
 
-    public boolean isBiggerTS(List<Integer> prevTS) {
+    public boolean replicaTSBiggerThan(List<Integer> prevTS) {
         // server TS > operation prevTS
         if (prevTS == null) {
             return true;

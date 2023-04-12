@@ -62,7 +62,7 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
         try {
             // get ledger state
             LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(
-                    serealizeOperations(state.getLedger()))
+                    serializeOperations(state.getLedger()))
                     .build();
             // return response
             getLedgerStateResponse response = getLedgerStateResponse.newBuilder().setLedgerState(ledgerState).build();
@@ -77,7 +77,7 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     @Override
     public void gossip(GossipRequest request, StreamObserver<GossipResponse> responseObserver) {
         try {
-            crossServerService.propagateState(serealizeOperations(state.getLedger()));
+            crossServerService.propagateState(serializeOperations(state.getLedger()));
             GossipResponse response = GossipResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -87,8 +87,8 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
         }
     }
 
-    private List<DistLedgerCommonDefinitions.Operation> serealizeOperations(List<Operation> operationList) {
+    private List<DistLedgerCommonDefinitions.Operation> serializeOperations(List<Operation> operationList) {
         Serializer serializer = new Serializer();
-        return serializer.serializOperations(operationList);
+        return serializer.serializeOperations(operationList);
     }
 }

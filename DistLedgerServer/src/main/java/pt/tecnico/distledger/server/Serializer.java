@@ -13,7 +13,7 @@ import java.util.List;
 public class Serializer {
     List<DistLedgerCommonDefinitions.Operation> protoOperations = new ArrayList<>();
 
-    public List<DistLedgerCommonDefinitions.Operation> serializOperations(List<Operation> ledgerOperations) {
+    public List<DistLedgerCommonDefinitions.Operation> serializeOperations(List<Operation> ledgerOperations) {
         for (Operation operation : ledgerOperations) {
             operation.serialize(this);
         }
@@ -25,6 +25,8 @@ public class Serializer {
         DistLedgerCommonDefinitions.Operation protoOperation = DistLedgerCommonDefinitions.Operation.newBuilder()
                 .setType(OperationType.OP_CREATE_ACCOUNT)
                 .setUserId(operation.getAccount())
+                .addAllPrevTS(operation.getPrevTS())
+                .addAllTS(operation.getTS())
                 .build();
         protoOperations.add(protoOperation);
     }
@@ -45,6 +47,8 @@ public class Serializer {
                 .setUserId(operation.getAccount())
                 .setDestUserId(operation.getDestAccount())
                 .setAmount(operation.getAmount())
+                .addAllPrevTS(operation.getPrevTS())
+                .addAllTS(operation.getTS())
                 .build();
         protoOperations.add(protoOperation);
     }
