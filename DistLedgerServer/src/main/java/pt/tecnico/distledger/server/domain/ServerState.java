@@ -6,6 +6,7 @@ import pt.tecnico.distledger.server.grpc.CrossServerService;
 import pt.tecnico.distledger.server.grpc.NamingServerService;
 import pt.tecnico.distledger.utils.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,11 +19,15 @@ public class ServerState {
 
     private boolean isActive = true;
 
+    private List<Integer> replicaTS = new ArrayList<>();
+
+    private String qualifier;
+    private String secondaryServer;
+
     private CrossServerService crossServerService;
     private final NamingServerService namingServerService;
 
     private static final String SERVICE = "DistLedger";
-    private static final String SECONDARY_QUALIFIER = "B";
     private static final String BROKER = "broker";
 
     public ServerState(NamingServerService namingServerService) {
@@ -34,11 +39,24 @@ public class ServerState {
         Logger.log("Broker Account created");
         this.namingServerService = namingServerService;
         Logger.log("ServerState initialized");
+        this.replicaTS.add(0);
+        this.replicaTS.add(0);
     }
 
-    public ServerState(NamingServerService namingServerService, CrossServerService crossServerService) {
+    public ServerState(NamingServerService namingServerService, CrossServerService crossServerService,
+            String qualifier) {
         this(namingServerService);
         this.crossServerService = crossServerService;
+        this.qualifier = qualifier;
+        setSecondaryServer(qualifier);
+    }
+
+    public void setSecondaryServer(String qualifier) {
+        if (qualifier.equals("A")) {
+            this.secondaryServer = "B";
+        } else {
+            this.secondaryServer = "A";
+        }
     }
 
     public synchronized void addOperation(Operation op) {
@@ -50,15 +68,32 @@ public class ServerState {
     public synchronized void propagateState(Operation op) {
         Logger.log("Propagating state to other servers");
         try {
-            List<String> hosts = namingServerService.lookup(SERVICE, SECONDARY_QUALIFIER).getHostsList();
-            crossServerService.propagateState(op, hosts);
+            List<String> hosts = namingServerService.lookup(SERVICE, secondaryServer).getHostsList();
+            crossServerService.propagateState(op, hosts, this.replicaTS);
         } catch (Exception e) {
             throw new FailedToPropagateException();
         }
     }
 
+    public void updateReplicaTS() {
+        if (qualifier.equals("A")) {
+            replicaTS.set(0, replicaTS.get(0) + 1);
+        } else {
+            replicaTS.set(1, replicaTS.get(1) + 1);
+        }
+    }
+
+    private boolean operationIsStable(List<Integer> prevTS) {
+        for (Integer i: prevTS) {
+            if (i > replicaTS.get(prevTS.indexOf(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     // User Interface Operations
-    public synchronized void createAccount(String name) {
+    public synchronized void createAccount(String name, List<Integer> prevTS) {
         Logger.log("Creating account \'" + name + "\'");
         if (!isActive) {
             throw new ServerUnavailableException();
@@ -66,13 +101,17 @@ public class ServerState {
         if (accountExists(name)) {
             throw new AccountAlreadyExistsException(name);
         }
-        propagateState(new CreateOp(name));
-        addAccount(name);
-        addOperation(new CreateOp(name));
+        CreateOp op = new CreateOp(name, prevTS);
+        if (operationIsStable(prevTS)) {
+            op.setTS(prevTS);
+            addAccount(name);
+        }
+        addOperation(new CreateOp(name, prevTS));
         Logger.log("Account \'" + name + "\' created");
+        updateReplicaTS();
     }
 
-    public synchronized void deleteAccount(String name) {
+    public synchronized void deleteAccount(String name, List<Integer> prevTS) {
         Logger.log("Deleting account \'" + name + "\'");
         if (!isActive) {
             throw new ServerUnavailableException();
@@ -83,16 +122,19 @@ public class ServerState {
         if (!accountExists(name)) {
             throw new AccountDoesntExistException(name);
         }
-        if (getAccountBalance(name) > 0) {
+        if (getAccountBalance(name, getReplicaTS()) > 0) {
             throw new AccountHasBalanceException(name);
         }
-        propagateState(new DeleteOp(name));
-        removeAccount(name);
-        addOperation(new DeleteOp(name));
+        DeleteOp op = new DeleteOp(name, prevTS);
+        if (operationIsStable(prevTS)) {
+            op.setTS(prevTS);
+            removeAccount(name);
+        }
+        addOperation(op);
         Logger.log("Account \'" + name + "\' deleted");
     }
 
-    public synchronized void transfer(String from, String to, Integer amount) {
+    public synchronized void transfer(String from, String to, Integer amount, List<Integer> prevTS) {
         Logger.log("Transferring " + amount + " from \'" + from + "\' to \'" + to + "\'");
         if (!isActive) {
             throw new ServerUnavailableException();
@@ -112,17 +154,24 @@ public class ServerState {
         if (!accountHasBalance(from, amount)) {
             throw new InsufficientFundsException(from);
         }
-        propagateState(new TransferOp(from, to, amount));
-        updateAccount(from, -amount);
-        updateAccount(to, amount);
-        addOperation(new TransferOp(from, to, amount));
+        TransferOp op = new TransferOp(from, to, amount, prevTS);
+        if (operationIsStable(prevTS)) {
+            op.setTS(prevTS);
+            updateAccount(from, -amount);
+            updateAccount(to, amount);
+        }
+        addOperation(op);
         Logger.log("Transfer completed");
+        updateReplicaTS();
     }
 
-    public synchronized Integer getAccountBalance(String name) {
+    public synchronized Integer getAccountBalance(String name, List<Integer> prevTS) {
         Logger.log("Getting balance of account \'" + name + "\'");
         if (!isActive) {
             throw new ServerUnavailableException();
+        }
+        if (!operationIsStable(prevTS)) {
+            throw new OperationNotStableException();
         }
         if (!accountExists(name)) {
             throw new AccountDoesntExistException(name);
@@ -182,6 +231,12 @@ public class ServerState {
     public synchronized void updateAccount(String name, int amount) {
         accounts.put(name, accounts.get(name) + amount);
     }
+
+    public synchronized List<Integer> getReplicaTS() {
+        return this.replicaTS;
+    }
+
+    // TODO - CHECK IF OPERATION IS STABLE AND CAN BE PERFORMED (CHECK TSs)
 
     @Override
     public synchronized String toString() {

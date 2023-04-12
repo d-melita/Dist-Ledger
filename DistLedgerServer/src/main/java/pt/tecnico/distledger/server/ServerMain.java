@@ -9,7 +9,6 @@ import java.io.IOException;
 import pt.tecnico.distledger.server.grpc.CrossServerService;
 import pt.tecnico.distledger.utils.Logger;
 import pt.tecnico.distledger.server.domain.ServerState;
-import pt.tecnico.distledger.server.domain.SecondaryServerState;
 import pt.tecnico.distledger.server.service.*;
 import pt.tecnico.distledger.server.grpc.NamingServerService;
 
@@ -43,14 +42,7 @@ public class ServerMain {
 
         ServerState state = null;
         try {
-            if (namingServerService.lookup(SERVICE, qualifier).getHostsCount() == 0 && qualifier.equals("A")) {
-                state = new ServerState(namingServerService, crossServerService);
-            } else if (qualifier.equals("B")) {
-                state = new SecondaryServerState(namingServerService);
-            } else {
-                System.out.println("Invalid server qualifier");
-                System.exit(1);
-            }
+            state = new ServerState(namingServerService, crossServerService, qualifier);
             namingServerService.register(SERVICE, host_address, qualifier);
         } catch (Exception e) {
             System.out.println("Naming server not available");
@@ -78,16 +70,15 @@ public class ServerMain {
 
         // Server threads are running in the background.
         System.out.println("Server started");
-        
+
         // Shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("\nServer shut down");
             namingServerService.unregister(SERVICE, host_address);
             namingServerService.shutdown();
             crossServerService.shutdownAll();
-        }
-        ));
-        
+        }));
+
         // Do not exit the main thread. Wait until server is terminated.
         server.awaitTermination();
     }

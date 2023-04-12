@@ -1,5 +1,7 @@
 package pt.tecnico.distledger.server.service;
 
+import java.util.List;
+
 import io.grpc.Status;
 import pt.ulisboa.tecnico.distledger.contract.user.UserServiceGrpc;
 import pt.ulisboa.tecnico.distledger.contract.user.UserDistLedger.*;
@@ -8,7 +10,7 @@ import pt.tecnico.distledger.server.domain.ServerState;
 import pt.tecnico.distledger.server.domain.exceptions.*;
 
 public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBase {
-    
+
     private final ServerState state;
     private static final String DEFAULT_ERROR_MESSAGE = "Operation Failed";
     private static final String INVALID_ARGUMENT_MESSAGE = "Invalid arguments";
@@ -25,8 +27,9 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             return;
         }
         try {
-            state.createAccount(request.getUserId());
-            CreateAccountResponse response = CreateAccountResponse.newBuilder().build();
+            state.createAccount(request.getUserId(), request.getPrevTSList());
+            List<Integer> replicaTS = state.getReplicaTS();
+            CreateAccountResponse response = CreateAccountResponse.newBuilder().addAllTS(replicaTS).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (AccountAlreadyExistsException e) {
@@ -55,7 +58,7 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             return;
         }
         try {
-            state.deleteAccount(request.getUserId());
+
             DeleteAccountResponse response = DeleteAccountResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -85,8 +88,9 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             return;
         }
         try {
-            int balance = state.getAccountBalance(request.getUserId());
-            BalanceResponse response = BalanceResponse.newBuilder().setValue(balance).build();
+            int balance = state.getAccountBalance(request.getUserId(), request.getPrevTSList());
+            List<Integer> replicaTS = state.getReplicaTS();
+            BalanceResponse response = BalanceResponse.newBuilder().setValue(balance).addAllValueTS(replicaTS).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (AccountDoesntExistException e) {
@@ -94,7 +98,7 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
                     .onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         } catch (ServerUnavailableException e) {
             responseObserver.onError(Status.UNAVAILABLE.asRuntimeException());
-        } catch (FailedToPropagateException e) {
+        } catch (FailedToPropagateException | OperationNotStableException e) {
             responseObserver
                     .onError(Status.ABORTED.withDescription(e.getMessage()).asRuntimeException());
         } catch (Exception e) {
@@ -111,8 +115,10 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             return;
         }
         try {
-            state.transfer(request.getAccountFrom(), request.getAccountTo(), request.getAmount());
-            TransferToResponse response = TransferToResponse.newBuilder().build();
+            state.transfer(request.getAccountFrom(), request.getAccountTo(), request.getAmount(),
+                    request.getPrevTSList());
+            List<Integer> replicaTS = state.getReplicaTS();
+            TransferToResponse response = TransferToResponse.newBuilder().addAllTS(replicaTS).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (AccountDoesntExistException e) {
