@@ -14,29 +14,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CrossServerService implements AutoCloseable {
+public class CrossServerService {
     private final String service;
-    private final String host_adress;
     NamingServerService namingServerService;
     private final Map<String, DistLedgerCrossServerServiceGrpc.DistLedgerCrossServerServiceBlockingStub> stubs;
     private final Map<String, ManagedChannel> channels;
 
-    public CrossServerService(NamingServerService namingServerService, String service, String host_adress) {
+    public CrossServerService(NamingServerService namingServerService, String service) {
         stubs = new HashMap<>();
         channels = new HashMap<>();
         this.namingServerService = namingServerService;
         this.service = service;
-        this.host_adress = host_adress;
     }
 
     public void propagateState(List<DistLedgerCommonDefinitions.Operation> operationList) {
         // send response
         LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(operationList).build();
         PropagateStateRequest request = PropagateStateRequest.newBuilder().setState(ledgerState).build();
+        // TODO: we are propagating to ourselves, we should not
         for (String host : searchForServers()) {
-            if (host.equals(host_adress)) {
-                continue;
-            }
             if (stubs.containsKey(host)) {
                 stubs.get(host).propagateState(request);
             } else {
@@ -47,6 +43,13 @@ public class CrossServerService implements AutoCloseable {
         }
     }
 
+    public void shutdownAll() {
+        for (ManagedChannel channel : channels.values()) {
+            channel.shutdown();
+        }
+        namingServerService.shutdown();
+    }
+
     private List<String> searchForServers() {
         List<String> servers = new ArrayList<>();
         LookupResponse hosts = namingServerService.lookup(service);
@@ -54,13 +57,5 @@ public class CrossServerService implements AutoCloseable {
             servers.add(host);
         }
         return servers;
-    }
-
-    @Override
-    public void close() {
-        for (ManagedChannel channel : channels.values()) {
-            channel.shutdown();
-        }
-        namingServerService.close();
     }
 }
