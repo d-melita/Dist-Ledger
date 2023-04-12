@@ -1,5 +1,4 @@
 package pt.tecnico.distledger.utils;
-import java.lang.reflect.*;
 
 public final class Logger {
     private static boolean active = (System.getProperty("debug") != null);

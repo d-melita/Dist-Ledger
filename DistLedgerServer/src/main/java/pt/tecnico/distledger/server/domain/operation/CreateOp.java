@@ -1,7 +1,7 @@
 package pt.tecnico.distledger.server.domain.operation;
 
+import pt.tecnico.distledger.server.domain.ServerState;
 import pt.tecnico.distledger.server.Serializer;
-import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 
 import java.util.List;
 
@@ -12,8 +12,15 @@ public class CreateOp extends Operation {
     }
 
     @Override
-    public DistLedgerCommonDefinitions.Operation accept(Serializer serializer) {
-        return serializer.serialize(this);
+    public void serialize(Serializer serializer) {
+        serializer.serialize(this);
+    }
+
+    @Override
+    public void executeOperation(ServerState state) {
+        // TODO: to avoid exposing server to Operation, we could create an Executor
+        // class for this
+        state.executeOperation(this);
     }
 
     @Override

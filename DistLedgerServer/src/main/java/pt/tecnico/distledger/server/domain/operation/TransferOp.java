@@ -1,7 +1,7 @@
 package pt.tecnico.distledger.server.domain.operation;
 
 import pt.tecnico.distledger.server.Serializer;
-import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
+import pt.tecnico.distledger.server.domain.ServerState;
 
 import java.util.List;
 
@@ -19,29 +19,27 @@ public class TransferOp extends Operation {
         return destAccount;
     }
 
-    public void setDestAccount(String destAccount) {
-        this.destAccount = destAccount;
-    }
-
     public int getAmount() {
         return amount;
     }
 
-    public void setAmount(int amount) {
-        this.amount = amount;
+    @Override
+    public void serialize(Serializer serializer) {
+        serializer.serialize(this);
     }
 
-    @Override
-    public DistLedgerCommonDefinitions.Operation accept(Serializer serializer) {
-        return serializer.serialize(this);
+    public void executeOperation(ServerState state) {
+        // TODO: to avoid exposing server to Operation, we could create an Executor
+        // class for this
+        state.executeOperation(this);
     }
 
     @Override
     public String toString() {
         return "TransferOp{" +
                 "account='" + getAccount() + '\'' +
-                ", destAccount='" + destAccount + '\'' +
-                ", amount=" + amount +
+                ", destAccount='" + getDestAccount() + '\'' +
+                ", amount=" + getAmount() +
                 '}';
     }
 }

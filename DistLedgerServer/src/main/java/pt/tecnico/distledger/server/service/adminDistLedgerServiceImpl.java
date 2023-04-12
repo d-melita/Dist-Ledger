@@ -6,29 +6,32 @@ import pt.ulisboa.tecnico.distledger.contract.admin.AdminDistLedger.*;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
 import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions.*;
 import pt.tecnico.distledger.server.domain.operation.Operation;
+import pt.tecnico.distledger.server.grpc.CrossServerService;
 import pt.tecnico.distledger.server.Serializer;
+import pt.tecnico.distledger.server.domain.ServerState;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.grpc.stub.StreamObserver;
-import pt.tecnico.distledger.server.domain.ServerState;
 
-public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImplBase{
-
+public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImplBase {
     private final ServerState state;
+    private CrossServerService crossServerService;
     private static final String ACTIVATION_FAILED = "Server activation failed";
     private static final String DEACTIVATION_FAILED = "Server deactivation failed";
     private static final String LEDGER_FAILED = "Getting ledger failed";
 
-    public adminDistLedgerServiceImpl(ServerState state) {
+    public adminDistLedgerServiceImpl(ServerState state, CrossServerService crossServerService) {
         this.state = state;
+        this.crossServerService = crossServerService;
     }
 
     @Override
     public void activate(ActivateRequest request, StreamObserver<ActivateResponse> responseObserver) {
         try {
+            // activate server
             state.activate();
+            // return response
             ActivateResponse response = ActivateResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -41,7 +44,9 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     @Override
     public void deactivate(DeactivateRequest request, StreamObserver<DeactivateResponse> responseObserver) {
         try {
+            // deactivate server
             DeactivateResponse response = DeactivateResponse.newBuilder().build();
+            // return response
             state.deactivate();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -55,18 +60,14 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     public void getLedgerState(getLedgerStateRequest request, StreamObserver<getLedgerStateResponse> responseObserver) {
         // get operations from ledger
         try {
-        Serializer serializer = new Serializer();
-        List<Operation> operations = state.getLedger();
-        List<DistLedgerCommonDefinitions.Operation> ops = new ArrayList<>();
-
-        for (Operation op : operations) {
-            ops.add(op.accept(serializer));
-        }
-
-        LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(ops).build();
-        getLedgerStateResponse response = getLedgerStateResponse.newBuilder().setLedgerState(ledgerState).build(); 
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
+            // get ledger state
+            LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(
+                    serealizeOperations(state.getLedger()))
+                    .build();
+            // return response
+            getLedgerStateResponse response = getLedgerStateResponse.newBuilder().setLedgerState(ledgerState).build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver
                     .onError(Status.UNKNOWN.withDescription(LEDGER_FAILED).asRuntimeException());
@@ -76,7 +77,7 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     @Override
     public void gossip(GossipRequest request, StreamObserver<GossipResponse> responseObserver) {
         try {
-            state.gossip();
+            crossServerService.propagateState(serealizeOperations(state.getLedger()));
             GossipResponse response = GossipResponse.newBuilder().build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -84,5 +85,10 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
             responseObserver
                     .onError(Status.UNKNOWN.withDescription(ACTIVATION_FAILED).asRuntimeException());
         }
+    }
+
+    private List<DistLedgerCommonDefinitions.Operation> serealizeOperations(List<Operation> operationList) {
+        Serializer serializer = new Serializer();
+        return serializer.serializOperations(operationList);
     }
 }

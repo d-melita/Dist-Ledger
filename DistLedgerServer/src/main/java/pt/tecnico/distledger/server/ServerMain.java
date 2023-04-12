@@ -17,7 +17,7 @@ public class ServerMain {
     private static final String SERVICE = "DistLedger";
     private static final int NS_PORT = 5001;
     private static final NamingServerService namingServerService = new NamingServerService(LOCALHOST, NS_PORT);
-    private static final CrossServerService crossServerService = new CrossServerService();
+    private static final CrossServerService crossServerService = new CrossServerService(namingServerService, SERVICE);
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -42,7 +42,7 @@ public class ServerMain {
 
         ServerState state = null;
         try {
-            state = new ServerState(namingServerService, crossServerService, qualifier);
+            state = new ServerState(qualifier);
             namingServerService.register(SERVICE, host_address, qualifier);
         } catch (Exception e) {
             System.out.println("Naming server not available");
@@ -52,7 +52,7 @@ public class ServerMain {
 
         final BindableService userImpl = new userDistLedgerServiceImpl(state);
         Logger.log("userImpl created");
-        final BindableService adminImpl = new adminDistLedgerServiceImpl(state);
+        final BindableService adminImpl = new adminDistLedgerServiceImpl(state, crossServerService);
         Logger.log("adminImpl created");
         final BindableService crossServerImpl = new CrossServerDistLedgerServiceImpl(state);
         Logger.log("crossServerImpl created");

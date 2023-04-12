@@ -1,12 +1,19 @@
 package pt.tecnico.distledger.server.domain.operation;
 
 import pt.tecnico.distledger.server.Serializer;
-import pt.ulisboa.tecnico.distledger.contract.DistLedgerCommonDefinitions;
+import pt.tecnico.distledger.server.domain.ServerState;
 
 import java.util.List;
 import java.util.ArrayList;
 
 public abstract class Operation {
+
+    public enum OperationType {
+        CREATE_ACCOUNT,
+        DELETE_ACCOUNT,
+        TRANSFER_TO
+    }
+
     private String account;
 
     private List<Integer> prevTS = new ArrayList<>();
@@ -36,18 +43,14 @@ public abstract class Operation {
         return this.account;
     }
 
-    public void setAccount(String account) {
-        this.account = account;
-    }
+    public abstract void serialize(Serializer serializer);
 
-    public DistLedgerCommonDefinitions.Operation accept(Serializer serializer) {
-        throw new UnsupportedOperationException();
-    }
+    public abstract void executeOperation(ServerState state);
 
     @Override
     public String toString() {
         return "Operation{" +
-                "account='" + account + '\'' +
+                "account='" + getAccount() + '\'' +
                 '}';
     }
 }
