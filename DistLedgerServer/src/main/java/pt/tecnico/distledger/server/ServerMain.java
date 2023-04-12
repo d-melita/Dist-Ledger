@@ -17,7 +17,6 @@ public class ServerMain {
     private static final String SERVICE = "DistLedger";
     private static final int NS_PORT = 5001;
     private static final NamingServerService namingServerService = new NamingServerService(LOCALHOST, NS_PORT);
-    private static final CrossServerService crossServerService = new CrossServerService(namingServerService, SERVICE);
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -52,7 +51,8 @@ public class ServerMain {
 
         final BindableService userImpl = new userDistLedgerServiceImpl(state);
         Logger.log("userImpl created");
-        final BindableService adminImpl = new adminDistLedgerServiceImpl(state, crossServerService);
+        final BindableService adminImpl = new adminDistLedgerServiceImpl(state,
+                new CrossServerService(namingServerService, SERVICE, host_address));
         Logger.log("adminImpl created");
         final BindableService crossServerImpl = new CrossServerDistLedgerServiceImpl(state);
         Logger.log("crossServerImpl created");
@@ -75,8 +75,6 @@ public class ServerMain {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("\nServer shut down");
             namingServerService.unregister(SERVICE, host_address);
-            namingServerService.shutdown();
-            crossServerService.shutdownAll();
         }));
 
         // Do not exit the main thread. Wait until server is terminated.

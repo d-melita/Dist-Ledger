@@ -263,19 +263,6 @@ public class ServerState {
         return this.isActive;
     }
 
-    /**
-     * public void gossip() {
-     * Logger.log("Propagating state to other servers");
-     * try {
-     * List<String> hosts = namingServerService.lookup(SERVICE,
-     * secondaryServer).getHostsList();
-     * crossServerService.propagateState(getLedger(), hosts, this.replicaTS);
-     * } catch (Exception e) {
-     * throw new FailedToPropagateException();
-     * }
-     * }
-     */
-
     private void updateReplicaTSAfterGossip(Operation op) {
         // TODO: change this for multiple replicas
         if (this.qualifier.equals("A")) {
