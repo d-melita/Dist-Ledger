@@ -35,7 +35,11 @@ public abstract class Operation {
     }
 
     public void setTS(int index, List<Integer> ReplicaTS) {
-        this.TS = List.copyOf(this.prevTS);
+        this.TS = new ArrayList<>();
+        System.out.println("Setting TS for " + this.account + " to " + ReplicaTS.get(index));
+        for (int i = 0; i < this.prevTS.size(); i++) {
+            this.TS.add(this.prevTS.get(i));
+        }
         this.TS.set(index, ReplicaTS.get(index));
         isStable = true;
     }

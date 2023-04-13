@@ -35,6 +35,8 @@ public class ServerState {
         // TODO: remove this when we have a better way to identify the replica
         this.qualifier = qualifier;
         this.replicaId = this.qualifier.equals("A") ? 0 : 1;
+        this.valueTS.add(0);
+        this.valueTS.add(0);
     }
 
     public synchronized void addOperation(Operation op) {
@@ -44,7 +46,7 @@ public class ServerState {
     }
 
     public void updateReplicaTS() {
-            replicaTS.set(this.replicaId, this.replicaTS.get(this.replicaId) + 1);
+        replicaTS.set(this.replicaId, this.replicaTS.get(this.replicaId) + 1);
     }
 
     public void mergeReplicaTS(List<Integer> TS) {
