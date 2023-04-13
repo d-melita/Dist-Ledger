@@ -34,8 +34,9 @@ public abstract class Operation {
         return this.TS;
     }
 
-    public void setTS(List<Integer> TS) {
-        this.TS = TS;
+    public void setTS(int index, List<Integer> ReplicaTS) {
+        this.TS = List.copyOf(this.prevTS);
+        this.TS.set(index, ReplicaTS.get(index));
         isStable = true;
     }
 
