@@ -37,14 +37,14 @@ public class CommandParser {
             String line = scanner.nextLine().trim();
             String cmd = line.split(SPACE)[0];
 
-            try{
+            try {
                 switch (cmd) {
                     case CREATE_ACCOUNT:
                         this.createAccount(line);
                         break;
 
                     case DELETE_ACCOUNT:
-                        //this.deleteAccount(line);
+                        // this.deleteAccount(line);
                         System.out.println("deleteAccount not possible in phase 3\n");
                         break;
 
@@ -69,18 +69,17 @@ public class CommandParser {
                         this.printUsage();
                         break;
                 }
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 System.err.println(e.getMessage());
                 System.out.println();
             }
         }
     }
 
-    private void createAccount(String line){
+    private void createAccount(String line) {
         String[] split = line.split(SPACE);
 
-        if (split.length != 3){
+        if (split.length != 3) {
             this.printUsage();
             return;
         }
@@ -98,10 +97,10 @@ public class CommandParser {
         Logger.log("Account created for user \'" + username + "\'");
     }
 
-    private void deleteAccount(String line){
+    private void deleteAccount(String line) {
         String[] split = line.split(SPACE);
 
-        if (split.length != 3){
+        if (split.length != 3) {
             this.printUsage();
             return;
         }
@@ -114,11 +113,10 @@ public class CommandParser {
         Logger.log("Account deleted for user \'" + username + "\'");
     }
 
-
-    private void balance(String line){
+    private void balance(String line) {
         String[] split = line.split(SPACE);
 
-        if (split.length != 3){
+        if (split.length != 3) {
             this.printUsage();
             return;
         }
@@ -142,10 +140,10 @@ public class CommandParser {
         System.out.println();
     }
 
-    private void transferTo(String line){
+    private void transferTo(String line) {
         String[] split = line.split(SPACE);
 
-        if (split.length != 5){
+        if (split.length != 5) {
             this.printUsage();
             return;
         }
@@ -164,9 +162,9 @@ public class CommandParser {
         System.out.println("OK\n");
     }
 
-    private void updateTS(List<Integer> tempTS){
-        for(Integer i: tempTS){
-            if(tempTS.get(i) > prevTS.get(i)){
+    private void updateTS(List<Integer> tempTS) {
+        for (int i = 0; i < tempTS.size(); i++) {
+            if (tempTS.get(i) > prevTS.get(i)) {
                 prevTS.set(i, tempTS.get(i));
             }
         }
@@ -174,10 +172,10 @@ public class CommandParser {
 
     private void printUsage() {
         System.out.println("Usage:\n" +
-                        "- createAccount <server> <username>\n" +
-                        "- deleteAccount <server> <username>\n" +
-                        "- balance <server> <username>\n" +
-                        "- transferTo <server> <username_from> <username_to> <amount>\n" +
-                        "- exit\n");
+                "- createAccount <server> <username>\n" +
+                "- deleteAccount <server> <username>\n" +
+                "- balance <server> <username>\n" +
+                "- transferTo <server> <username_from> <username_to> <amount>\n" +
+                "- exit\n");
     }
 }
