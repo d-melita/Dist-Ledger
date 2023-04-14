@@ -44,12 +44,10 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
                     .onError(Status.UNAVAILABLE.asRuntimeException());
         } catch (SecondaryServerWriteOperationException e) {
             // try to write in a secondary server, return PERMISSION_DENIED error
-            // TODO: remove for gossip
             responseObserver
                     .onError(Status.PERMISSION_DENIED.withDescription(e.getMessage()).asRuntimeException());
         } catch (FailedToPropagateException e) {
             // we tried to propagate the state to the other servers, but failed
-            // TODO: remove for gossip
             responseObserver
                     .onError(Status.ABORTED.withDescription(e.getMessage()).asRuntimeException());
         } catch (Exception e) {
@@ -90,7 +88,6 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             responseObserver.onError(Status.FAILED_PRECONDITION.withDescription(e.getMessage()).asRuntimeException());
         } catch (FailedToPropagateException e) {
             // we tried to propagate the state to the other servers, but failed
-            // TODO: remove for gossip
             responseObserver
                     .onError(Status.ABORTED.withDescription(e.getMessage()).asRuntimeException());
         } catch (Exception e) {
@@ -163,12 +160,10 @@ public class userDistLedgerServiceImpl extends UserServiceGrpc.UserServiceImplBa
             responseObserver.onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         } catch (SecondaryServerWriteOperationException e) {
             // try to write in a secondary server, return PERMISSION_DENIED error
-            // TODO: remove for gossip
             responseObserver
                     .onError(Status.PERMISSION_DENIED.withDescription(e.getMessage()).asRuntimeException());
         } catch (FailedToPropagateException e) {
             // we tried to propagate the state to the other servers, but failed
-            // TODO: remove for gossip
             responseObserver
                     .onError(Status.ABORTED.withDescription(e.getMessage()).asRuntimeException());
         } catch (Exception e) {
