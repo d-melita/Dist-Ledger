@@ -235,6 +235,9 @@ public class ServerState {
 
     public void executeOperation(CreateOp op) {
         Logger.log("Executing create operation");
+        if (accountExists(op.getAccount())) {
+            return;
+        }
         addAccount(op.getAccount());
     }
 
@@ -245,6 +248,21 @@ public class ServerState {
 
     public void executeOperation(TransferOp op) {
         Logger.log("Executing transfer operation");
+        String from = op.getAccount();
+        String to = op.getDestAccount();
+        Integer amount = op.getAmount();
+        if (!accountExists(from) && !accountExists(to)) {
+            return;
+        }
+        if (!accountExists(from)) {
+            return;
+        }
+        if (!accountExists(to)) {
+            return;
+        }
+        if (!accountHasBalance(from, amount)) {
+            return;
+        }
         updateAccount(op.getAccount(), -op.getAmount());
         updateAccount(op.getDestAccount(), op.getAmount());
     }
@@ -284,19 +302,6 @@ public class ServerState {
         return this.isActive;
     }
 
-    /**
-     * public void gossip() {
-     * Logger.log("Propagating state to other servers");
-     * try {
-     * List<String> hosts = namingServerService.lookup(SERVICE,
-     * secondaryServer).getHostsList();
-     * crossServerService.propagateState(getLedger(), hosts, this.replicaTS);
-     * } catch (Exception e) {
-     * throw new FailedToPropagateException();
-     * }
-     * }
-     */
-
     private synchronized boolean accountExists(String name) {
         return accounts.get(name) != null;
     }
@@ -304,8 +309,6 @@ public class ServerState {
     private synchronized boolean accountHasBalance(String name, int amount) {
         return accounts.get(name) >= amount;
     }
-
-    // TODO - CHECK IF OPERATION IS STABLE AND CAN BE PERFORMED (CHECK TSs)
 
     @Override
     public synchronized String toString() {
