@@ -196,9 +196,13 @@ public class ServerState {
 
     public void propagateState(List<Operation> ledger, List<Integer> propagatedTS) {
         for (Operation op : ledger) {
-            if (TSBiggerThan(this.replicaTS, op.getTS())) // duplicate operation
+            if (TSBiggerThan(this.replicaTS, op.getTS())) { // duplicate operation
+                Logger.log("Ignoring duplicate operation " + op.toString());
                 continue;
+            }
+            Logger.log("Adding propagated operation " + op.toString());
             addOperation(op);
+            Logger.log("Merging propagated TS " + op.getTS() + " with replica TS " + this.replicaTS);
             mergeReplicaTS(op.getTS());
         }
         Logger.log("State propagated, now going to execute ledger");
@@ -209,11 +213,15 @@ public class ServerState {
             noMoreExecutions = true;
             for (Operation op : getLedger()) {
                 Logger.log("Checking operation " + op.toString() + " for execution");
-                if (TSBiggerThan(this.valueTS, op.getTS()))
+                if (TSBiggerThan(this.valueTS, op.getTS())) {
+                    Logger.log("Ignoring operation " + op.toString() + " because it was already executed");
                     continue; // ignore operations already executed
+                }
                 if (TSBiggerThan(this.valueTS, op.getPrevTS())) { // prevTS < valueTS -> we can execute the operation
+                    Logger.log("Executing propagated operation " + op.toString());
                     op.executeOperation(this);
                     // set operation TS if it is uninitialized
+                    Logger.log("Merging propagated TS " + op.getTS() + " with replica TS " + this.replicaTS);
                     mergeValueTS(op.getTS());
                     noMoreExecutions = false; // if we can perform an operation, we need to go through the ledger again
                 }
