@@ -5,8 +5,10 @@ import pt.tecnico.distledger.server.domain.operation.*;
 import pt.tecnico.distledger.utils.Logger;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -16,6 +18,7 @@ public class ServerState {
     private final List<Operation> ledger;
     private List<Integer> replicaTS = new ArrayList<>();
     private List<Integer> valueTS = new ArrayList<>();
+    private Set<List<Integer>> registeredOps = new HashSet<List<Integer>>();
     private final int replicaId;
     private static final String BROKER = "broker";
 
@@ -37,6 +40,7 @@ public class ServerState {
     public synchronized void addOperation(Operation op) {
         Logger.log("Adding operation " + op.toString() + " to ledger");
         this.ledger.add(op);
+        registeredOps.add(op.getTS());
         Logger.log("Operation added");
     }
 
@@ -196,15 +200,15 @@ public class ServerState {
 
     public void propagateState(List<Operation> ledger, List<Integer> propagatedTS) {
         for (Operation op : ledger) {
-            if (TSBiggerThan(this.replicaTS, op.getTS())) { // duplicate operation
+            if (registeredOps.contains(op.getTS())) { // duplicate operation
                 Logger.log("Ignoring duplicate operation " + op.toString());
                 continue;
             }
             Logger.log("Adding propagated operation " + op.toString());
             addOperation(op);
-            Logger.log("Merging propagated TS " + op.getTS() + " with replica TS " + this.replicaTS);
-            mergeReplicaTS(op.getTS());
         }
+        Logger.log("Merging propagated TS " + propagatedTS + " with replica TS " + this.replicaTS);
+        mergeReplicaTS(propagatedTS);
         Logger.log("State propagated, now going to execute ledger");
         boolean noMoreExecutions = false;
         // now we will go through all operations in the ledger and execute them if they
