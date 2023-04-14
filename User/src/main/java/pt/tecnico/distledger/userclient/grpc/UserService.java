@@ -16,12 +16,18 @@ public class UserService implements AutoCloseable {
     private final NamingServerService namingServerService;
     private final Map<String, ManagedChannel> serverChannels;
     private final Map<String, UserServiceGrpc.UserServiceBlockingStub> serverStubs;
+    private final int MAX_SERVERS;
 
     public UserService(String service, String ns_host, int ns_port) {
         this.service = service;
         this.namingServerService = new NamingServerService(ns_host, ns_port);
+        this.MAX_SERVERS = this.namingServerService.maxServer(this.service).getMaxServers();
         this.serverChannels = new HashMap<>();
         this.serverStubs = new HashMap<>();
+    }
+
+    public int getMaxServers() {
+        return this.MAX_SERVERS;
     }
 
     private void cacheStub(String server) {
@@ -44,10 +50,12 @@ public class UserService implements AutoCloseable {
     public CreateAccountResponse createAccount(String server, String username, List<Integer> prevTS) {
         try {
             cacheStub(server);
-            return this.serverStubs.get(server).createAccount(CreateAccountRequest.newBuilder().setUserId(username).addAllPrevTS(prevTS).build());
+            return this.serverStubs.get(server)
+                    .createAccount(CreateAccountRequest.newBuilder().setUserId(username).addAllPrevTS(prevTS).build());
         } catch (Exception e) {
             invalidateAndCacheStub(server);
-            return this.serverStubs.get(server).createAccount(CreateAccountRequest.newBuilder().setUserId(username).addAllPrevTS(prevTS).build());
+            return this.serverStubs.get(server)
+                    .createAccount(CreateAccountRequest.newBuilder().setUserId(username).addAllPrevTS(prevTS).build());
         }
     }
 
@@ -64,10 +72,12 @@ public class UserService implements AutoCloseable {
     public BalanceResponse balance(String server, String username, List<Integer> prevTS) {
         try {
             cacheStub(server);
-            return this.serverStubs.get(server).balance(BalanceRequest.newBuilder().setUserId(username).addAllPrevTS(prevTS).build());
+            return this.serverStubs.get(server)
+                    .balance(BalanceRequest.newBuilder().setUserId(username).addAllPrevTS(prevTS).build());
         } catch (Exception e) {
             invalidateAndCacheStub(server);
-            return this.serverStubs.get(server).balance(BalanceRequest.newBuilder().setUserId(username).addAllPrevTS(prevTS).build());
+            return this.serverStubs.get(server)
+                    .balance(BalanceRequest.newBuilder().setUserId(username).addAllPrevTS(prevTS).build());
         }
     }
 
@@ -75,11 +85,13 @@ public class UserService implements AutoCloseable {
         try {
             cacheStub(server);
             return this.serverStubs.get(server).transferTo(
-                    TransferToRequest.newBuilder().setAccountFrom(from).setAccountTo(dest).setAmount(amount).addAllPrevTS(prevTS).build());
+                    TransferToRequest.newBuilder().setAccountFrom(from).setAccountTo(dest).setAmount(amount)
+                            .addAllPrevTS(prevTS).build());
         } catch (Exception e) {
             invalidateAndCacheStub(server);
             return this.serverStubs.get(server).transferTo(
-                    TransferToRequest.newBuilder().setAccountFrom(from).setAccountTo(dest).setAmount(amount).addAllPrevTS(prevTS).build());
+                    TransferToRequest.newBuilder().setAccountFrom(from).setAccountTo(dest).setAmount(amount)
+                            .addAllPrevTS(prevTS).build());
         }
     }
 

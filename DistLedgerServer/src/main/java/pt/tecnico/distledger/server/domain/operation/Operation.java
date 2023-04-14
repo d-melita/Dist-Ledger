@@ -18,7 +18,6 @@ public abstract class Operation {
 
     private List<Integer> prevTS = new ArrayList<>();
     private List<Integer> TS = new ArrayList<>();
-    private boolean isStable = false;
 
     public Operation(String fromAccount, List<Integer> prevTS, List<Integer> TS) {
         this.account = fromAccount;
@@ -34,9 +33,13 @@ public abstract class Operation {
         return this.TS;
     }
 
-    public void setTS(List<Integer> TS) {
-        this.TS = TS;
-        isStable = true;
+    public void setTS(int index, List<Integer> ReplicaTS) {
+        this.TS = new ArrayList<>();
+        System.out.println("Setting TS for " + this.account + " to " + ReplicaTS.get(index));
+        for (int i = 0; i < this.prevTS.size(); i++) {
+            this.TS.add(this.prevTS.get(i));
+        }
+        this.TS.set(index, ReplicaTS.get(index));
     }
 
     public String getAccount() {

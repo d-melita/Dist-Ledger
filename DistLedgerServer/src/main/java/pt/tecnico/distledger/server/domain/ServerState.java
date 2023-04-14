@@ -5,8 +5,10 @@ import pt.tecnico.distledger.server.domain.operation.*;
 import pt.tecnico.distledger.utils.Logger;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -15,11 +17,12 @@ public class ServerState {
     private Map<String, Integer> accounts;
     private final List<Operation> ledger;
     private List<Integer> replicaTS = new ArrayList<>();
+    private List<Integer> valueTS = new ArrayList<>();
+    private Set<List<Integer>> registeredOps = new HashSet<List<Integer>>();
+    private final int replicaId;
     private static final String BROKER = "broker";
-    // TODO: remove this when we have a better way to identify the replica
-    private String qualifier;
 
-    public ServerState(String qualifier) {
+    public ServerState(int replicaId, int numReplicas) {
         Logger.log("Initializing ServerState");
         this.ledger = new CopyOnWriteArrayList<>();
         this.accounts = new ConcurrentHashMap<>();
@@ -27,30 +30,49 @@ public class ServerState {
         this.addAccount(BROKER, 1000);
         Logger.log("Broker Account created");
         Logger.log("ServerState initialized");
-        this.replicaTS.add(0);
-        this.replicaTS.add(0);
-        // TODO: remove this when we have a better way to identify the replica
-        this.qualifier = qualifier;
+        this.replicaId = replicaId;
+        for (int i = 0; i < numReplicas; i++) {
+            this.replicaTS.add(0);
+            this.valueTS.add(0);
+        }
     }
 
     public synchronized void addOperation(Operation op) {
         Logger.log("Adding operation " + op.toString() + " to ledger");
         this.ledger.add(op);
+        registeredOps.add(op.getTS());
         Logger.log("Operation added");
     }
 
     public void updateReplicaTS() {
-        if (qualifier.equals("A")) {
-            replicaTS.set(0, replicaTS.get(0) + 1);
-        } else {
-            replicaTS.set(1, replicaTS.get(1) + 1);
+        replicaTS.set(this.replicaId, this.replicaTS.get(this.replicaId) + 1);
+    }
+
+    public void mergeReplicaTS(List<Integer> TS) {
+        for (int i = 0; i < TS.size(); i++) {
+            if (TS.get(i) > this.replicaTS.get(i)) {
+                this.replicaTS.set(i, TS.get(i));
+            }
         }
     }
 
-    private boolean operationIsStable(List<Integer> prevTS) {
-        for (int i = 0; i < prevTS.size(); i++){
-            if (prevTS.get(i) > getReplicaTS().get(i))
+    public void updateValueTS() {
+        valueTS.set(this.replicaId, this.valueTS.get(this.replicaId) + 1);
+    }
+
+    public void mergeValueTS(List<Integer> TS) {
+        for (int i = 0; i < TS.size(); i++) {
+            if (TS.get(i) > this.valueTS.get(i)) {
+                this.valueTS.set(i, TS.get(i));
+            }
+        }
+    }
+
+    private boolean TSBiggerThan(List<Integer> TS1, List<Integer> TS2) {
+        for (int i = 0; i < TS1.size(); i++) {
+            if (TS1.get(i) < TS2.get(i)) {
                 return false;
+            }
         }
         return true;
     }
@@ -69,10 +91,11 @@ public class ServerState {
         }
         CreateOp op = new CreateOp(name, prevTS, null);
         updateReplicaTS();
-        if (operationIsStable(prevTS)) {
-            op.setTS(getReplicaTS());
+        if (TSBiggerThan(this.replicaTS, prevTS)) {
+            updateValueTS();
             addAccount(name);
         }
+        op.setTS(this.replicaId, this.replicaTS);
         addOperation(op);
         Logger.log("Account \'" + name + "\' created");
         Logger.log("At the end, Replica TS is: " + getReplicaTS());
@@ -93,10 +116,11 @@ public class ServerState {
             throw new AccountHasBalanceException(name);
         }
         DeleteOp op = new DeleteOp(name, prevTS, null);
-        if (operationIsStable(prevTS)) {
-            op.setTS(getReplicaTS());
+        if (TSBiggerThan(this.replicaTS, prevTS)) {
+            updateValueTS();
             removeAccount(name);
         }
+        op.setTS(this.replicaId, this.replicaTS);
         addOperation(op);
         Logger.log("Account \'" + name + "\' deleted");
     }
@@ -111,25 +135,26 @@ public class ServerState {
         if (amount <= 0) {
             throw new InvalidAmountException();
         }
-        if (!accountExists(from) && !accountExists(to)) {
-            throw new AccountDoesntExistException(from, to);
-        }
-        if (!accountExists(from)) {
-            throw new AccountDoesntExistException(from);
-        }
-        if (!accountExists(to)) {
-            throw new AccountDoesntExistException(to);
-        }
-        if (!accountHasBalance(from, amount)) {
-            throw new InsufficientFundsException(from);
-        }
-        TransferOp op = new TransferOp(from, to, amount, prevTS, null);
-        updateReplicaTS();
-        if (operationIsStable(prevTS)) {
-            op.setTS(getReplicaTS());
+        if (TSBiggerThan(this.replicaTS, prevTS)) {
+            if (!accountExists(from) && !accountExists(to)) {
+                throw new AccountDoesntExistException(from, to);
+            }
+            if (!accountExists(from)) {
+                throw new AccountDoesntExistException(from);
+            }
+            if (!accountExists(to)) {
+                throw new AccountDoesntExistException(to);
+            }
+            if (!accountHasBalance(from, amount)) {
+                throw new InsufficientFundsException(from);
+            }
+            updateValueTS();
             updateAccount(from, -amount);
             updateAccount(to, amount);
         }
+        TransferOp op = new TransferOp(from, to, amount, prevTS, null);
+        updateReplicaTS();
+        op.setTS(this.replicaId, this.replicaTS);
         addOperation(op);
         Logger.log("Transfer completed");
         Logger.log("At the end, Replica TS is: " + getReplicaTS());
@@ -142,7 +167,7 @@ public class ServerState {
         if (!isActive) {
             throw new ServerUnavailableException();
         }
-        if (!operationIsStable(prevTS)) {
+        if (!TSBiggerThan(this.replicaTS, prevTS)) {
             throw new OperationNotStableException();
         }
         if (!accountExists(name)) {
@@ -173,19 +198,17 @@ public class ServerState {
 
     // Propagate ledger operations
 
-    public void propagateState(List<Operation> ledger) {
-        Logger.log("Propagating state");
+    public void propagateState(List<Operation> ledger, List<Integer> propagatedTS) {
         for (Operation op : ledger) {
-            Logger.log("Op TS:" + op.getTS());
-            Logger.log("Replica TS:" + getReplicaTS());
-            if (replicaTSBiggerThan(op.getTS())) // duplicate operation
+            if (registeredOps.contains(op.getTS())) { // duplicate operation
+                Logger.log("Ignoring duplicate operation " + op.toString());
                 continue;
-            if (replicaTSBiggerThan(op.getPrevTS())) { // operation is stable and can be executed
-                op.executeOperation(this);
-                updateReplicaTSAfterGossip(op);
             }
+            Logger.log("Adding propagated operation " + op.toString());
             addOperation(op);
         }
+        Logger.log("Merging propagated TS " + propagatedTS + " with replica TS " + this.replicaTS);
+        mergeReplicaTS(propagatedTS);
         Logger.log("State propagated, now going to execute ledger");
         boolean noMoreExecutions = false;
         // now we will go through all operations in the ledger and execute them if they
@@ -194,19 +217,17 @@ public class ServerState {
             noMoreExecutions = true;
             for (Operation op : getLedger()) {
                 Logger.log("Checking operation " + op.toString() + " for execution");
-                if (replicaTSBiggerThan(op.getTS()))
+                if (TSBiggerThan(this.valueTS, op.getTS())) {
+                    Logger.log("Ignoring operation " + op.toString() + " because it was already executed");
                     continue; // ignore operations already executed
-                
-                if (replicaTSBiggerThan(op.getPrevTS())) { // prevTS < replicaTS -> we can execute the operation
+                }
+                if (TSBiggerThan(this.valueTS, op.getPrevTS())) { // prevTS < valueTS -> we can execute the operation
+                    Logger.log("Executing propagated operation " + op.toString());
                     op.executeOperation(this);
-                    // set operation TS if it is null
-                    if (op.getTS() == null) { // if the operation wasn't stable when it was added to the ledger
-                        updateReplicaTS();
-                        op.setTS(getReplicaTS());
-                    } else {
-                        updateReplicaTSAfterGossip(op);
-                    }
-                    noMoreExecutions = false; // if we can permorm an operation, we need to go through the ledger again
+                    // set operation TS if it is uninitialized
+                    Logger.log("Merging propagated TS " + op.getTS() + " with replica TS " + this.replicaTS);
+                    mergeValueTS(op.getTS());
+                    noMoreExecutions = false; // if we can perform an operation, we need to go through the ledger again
                 }
             }
         }
@@ -214,6 +235,9 @@ public class ServerState {
 
     public void executeOperation(CreateOp op) {
         Logger.log("Executing create operation");
+        if (accountExists(op.getAccount())) {
+            return;
+        }
         addAccount(op.getAccount());
     }
 
@@ -224,6 +248,21 @@ public class ServerState {
 
     public void executeOperation(TransferOp op) {
         Logger.log("Executing transfer operation");
+        String from = op.getAccount();
+        String to = op.getDestAccount();
+        Integer amount = op.getAmount();
+        if (!accountExists(from) && !accountExists(to)) {
+            return;
+        }
+        if (!accountExists(from)) {
+            return;
+        }
+        if (!accountExists(to)) {
+            return;
+        }
+        if (!accountHasBalance(from, amount)) {
+            return;
+        }
         updateAccount(op.getAccount(), -op.getAmount());
         updateAccount(op.getDestAccount(), op.getAmount());
     }
@@ -263,41 +302,6 @@ public class ServerState {
         return this.isActive;
     }
 
-    /**
-     * public void gossip() {
-     * Logger.log("Propagating state to other servers");
-     * try {
-     * List<String> hosts = namingServerService.lookup(SERVICE,
-     * secondaryServer).getHostsList();
-     * crossServerService.propagateState(getLedger(), hosts, this.replicaTS);
-     * } catch (Exception e) {
-     * throw new FailedToPropagateException();
-     * }
-     * }
-     */
-
-    private void updateReplicaTSAfterGossip(Operation op) {
-        // TODO: change this for multiple replicas
-        if (this.qualifier.equals("A")) {
-            this.replicaTS.set(1, op.getTS().get(1));
-        } else if (this.qualifier.equals("B")) {
-            this.replicaTS.set(0, op.getTS().get(0));
-        }
-    }
-
-    public boolean replicaTSBiggerThan(List<Integer> prevTS) {
-        // server TS > operation prevTS
-        if (prevTS == null) {
-            return true;
-        }
-        for (int i = 0; i < prevTS.size(); i++) {
-            if (prevTS.get(i) > this.replicaTS.get(i)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private synchronized boolean accountExists(String name) {
         return accounts.get(name) != null;
     }
@@ -305,8 +309,6 @@ public class ServerState {
     private synchronized boolean accountHasBalance(String name, int amount) {
         return accounts.get(name) >= amount;
     }
-
-    // TODO - CHECK IF OPERATION IS STABLE AND CAN BE PERFORMED (CHECK TSs)
 
     @Override
     public synchronized String toString() {

@@ -11,27 +11,34 @@ import java.util.ArrayList;
 public class NamingServer {
 
     private Map<String, ServiceEntry> services;
+    private final int maxServersPerService;
 
-    public NamingServer() {
+    public NamingServer(int maxServersPerService) {
         Logger.log("Initializing NamingServer");
         this.services = new ConcurrentHashMap<>();
         Logger.log("NamingServer initialized");
+        this.maxServersPerService = maxServersPerService;
     }
 
-    public synchronized void register(String service, String host, String qualifier) {
+    public int getMaxServersofService(String service) {
+        return services.get(service).getMaxServers();
+    }
+
+    public synchronized int register(String service, String host, String qualifier) {
         Logger.log("Register operation: " + service + " " + host + " " + qualifier);
         if (services.containsKey(service)) {
             Logger.log("Service already exists");
             ServiceEntry serviceEntry = services.get(service);
             serviceEntry.addServer(host, qualifier);
         } else {
-            addService(service, host, qualifier);
+            addService(service, host, qualifier, maxServersPerService);
         }
+        return (services.get(service).getNumServers() - 1);
     }
 
-    public synchronized void addService(String service, String host, String qualifier) {
+    public synchronized void addService(String service, String host, String qualifier, int maxServersPerService) {
         Logger.log("Adding new service " + service);
-        ServiceEntry serviceEntry = new ServiceEntry(service);
+        ServiceEntry serviceEntry = new ServiceEntry(service, maxServersPerService);
         serviceEntry.addServer(host, qualifier);
         services.put(service, serviceEntry);
     }

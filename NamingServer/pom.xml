@@ -21,6 +21,7 @@
 		<version.exec-maven-plugin>3.0.0</version.exec-maven-plugin>
 
 		<mainclass>pt.tecnico.distledger.namingserver.NamingServerMain</mainclass>
+		<server.number>3</server.number>
 
 	</properties>
 
@@ -65,6 +66,9 @@
 				</executions>
 				<configuration>
 					<mainClass>${mainclass}</mainClass>
+					<arguments>
+						<argument>${server.number}</argument>
+					</arguments>
 				</configuration>
 			</plugin>
 		</plugins>

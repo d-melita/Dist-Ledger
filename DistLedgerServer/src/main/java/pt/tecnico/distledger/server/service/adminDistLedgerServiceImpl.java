@@ -20,6 +20,7 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     private static final String ACTIVATION_FAILED = "Server activation failed";
     private static final String DEACTIVATION_FAILED = "Server deactivation failed";
     private static final String LEDGER_FAILED = "Getting ledger failed";
+    private static final String GOSSIP_FAILED = "Gossip failed";
 
     public adminDistLedgerServiceImpl(ServerState state, CrossServerService crossServerService) {
         this.state = state;
@@ -77,13 +78,13 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     @Override
     public void gossip(GossipRequest request, StreamObserver<GossipResponse> responseObserver) {
         try {
-            crossServerService.propagateState(serializeOperations(state.getLedger()));
-            GossipResponse response = GossipResponse.newBuilder().build();
+            crossServerService.propagateState(serializeOperations(state.getLedger()), state.getReplicaTS());
+            GossipResponse response = GossipResponse.getDefaultInstance();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver
-                    .onError(Status.UNKNOWN.withDescription(ACTIVATION_FAILED).asRuntimeException());
+                    .onError(Status.UNKNOWN.withDescription(GOSSIP_FAILED).asRuntimeException());
         }
     }
 

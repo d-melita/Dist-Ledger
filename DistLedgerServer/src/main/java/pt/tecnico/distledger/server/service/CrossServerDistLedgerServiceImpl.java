@@ -35,7 +35,7 @@ public class CrossServerDistLedgerServiceImpl
         // receive ledger state
         try {
             // set ledger state on server
-            state.propagateState(deserializeRequestOperationList(request));
+            state.propagateState(deserializeRequestOperationList(request), request.getReplicaTSList());
             // return response
             responseObserver.onNext(PropagateStateResponse.newBuilder().build());
             responseObserver.onCompleted();

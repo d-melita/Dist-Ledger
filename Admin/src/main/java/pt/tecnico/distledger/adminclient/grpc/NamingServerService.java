@@ -14,21 +14,10 @@ public class NamingServerService implements AutoCloseable {
         stub = NamingServerServiceGrpc.newBlockingStub(channel);
     }
 
-    public void register(String service, String host, String qualifier) {
-        RegisterRequest request = RegisterRequest.newBuilder().setService(service).setHost(host)
-                .setQualifier(qualifier).build();
-        stub.registerServer(request);
-    }
-
     public LookupResponse lookup(String service, String qualifier) {
         LookupRequest request = LookupRequest.newBuilder().setService(service).setQualifier(qualifier).build();
         LookupResponse response = stub.lookup(request);
         return response;
-    }
-
-    public void unregister(String service, String host) {
-        DeleteRequest request = DeleteRequest.newBuilder().setService(service).setHost(host).build();
-        stub.deleteServer(request);
     }
 
     @Override

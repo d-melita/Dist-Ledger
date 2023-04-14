@@ -8,16 +8,22 @@ import java.util.ArrayList;
 
 public class ServiceEntry {
     private String service;
+    private static int maxServers;
 
     private List<ServerEntry> servers;
 
-    public ServiceEntry(String service) {
+    public ServiceEntry(String service, int maxServers) {
         this.service = service;
         this.servers = new ArrayList<ServerEntry>();
+        this.maxServers = maxServers;
     }
 
     public String getService() {
         return service;
+    }
+
+    public int getMaxServers() {
+        return maxServers;
     }
 
     public synchronized ServerEntry getServer(String host) {
@@ -69,5 +75,9 @@ public class ServiceEntry {
         } else {
             throw new RemovalFailedException(host);
         }
+    }
+
+    public synchronized int getNumServers() {
+        return servers.size();
     }
 }
