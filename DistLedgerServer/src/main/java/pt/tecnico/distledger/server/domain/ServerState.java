@@ -233,7 +233,7 @@ public class ServerState {
         }
     }
 
-    public void executeOperation(CreateOp op) {
+    public synchronized void executeOperation(CreateOp op) {
         Logger.log("Executing create operation");
         if (accountExists(op.getAccount())) {
             return;
@@ -241,12 +241,12 @@ public class ServerState {
         addAccount(op.getAccount());
     }
 
-    public void executeOperation(DeleteOp op) {
+    public synchronized void executeOperation(DeleteOp op) {
         Logger.log("Executing delete operation");
         removeAccount(op.getAccount());
     }
 
-    public void executeOperation(TransferOp op) {
+    public synchronized void executeOperation(TransferOp op) {
         Logger.log("Executing transfer operation");
         String from = op.getAccount();
         String to = op.getDestAccount();

@@ -36,8 +36,8 @@ can too -- just downgrade the version in the POMs.
 To confirm that you have them installed and which versions they are, run in the terminal:
 
 ```s
-javac -version
-mvn -version
+    javac -version
+    mvn -version
 ```
 
 ### Installation
@@ -45,49 +45,54 @@ mvn -version
 To compile and install all modules:
 
 ```s
-mvn clean install
+    mvn clean install
 ```
 
-### Compile and Run the Server and Clients
+### Compile and Run the Naming Server, Servers and Clients
 
-To compile the server and clients:
+To compile the naming server, servers and clients:
 
 ```s
-mvn compile
+    mvn compile
 ```
 
-To run the server or clients navigate to the folder of each module and run:
+To run the naming server, serves or clients navigate to the folder of each module and run:
 
-- For the server:
+- For the naming server:
 
 ```s
-    mvn exec:java -Dexec.args="<port>"
+    mvn exec:java
+```
+
+Naming Server should be runned first since it is the one that will be used by the servers to register themselves.
+
+- For the servers:
+
+```s
+    mvn exec:java -Dexec.args="<port> <qualifier>"
 ```
 
 - For the admin and user clients:
 
 ```s
-    mvn exec:java -Dexec.args="<host> <port>"
+    mvn exec:java
 ```
 
-You can also run the server and clients without arguments, in which case the default values will be used (see pom.xml for the default values):
+### Run the Naming Server, Servers and clients in debug mode
 
-```s
-mvn exec:java
-```
-
-### Run the Server in debug mode
-
-To run the server in debug mode you can use the flag:
-
+To run the naming server in debug mode you can use the flag:
 ```s
 mvn exec:java -Ddebug
 ```
 
-You can also add the port and host arguments:
-
+To run the server in debug mode you can use the flag:
 ```s
-mvn exec:java -Ddebug -Dexec.args="<host> <port>"
+mvn exec:java -Ddebug -Dexec.args="<port> <qualifier>" -Ddebug
+```
+
+To run the admin and user clients in debug mode you can use the flag:
+```s
+mvn exec:java -Ddebug
 ```
 
 ### Run the tests for the server and clients

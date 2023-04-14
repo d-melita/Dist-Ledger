@@ -18,8 +18,6 @@ public class DeleteOp extends Operation {
 
     @Override
     public void executeOperation(ServerState state) {
-        // TODO: to avoid exposing server to Operation, we could create an Executor
-        // class for this
         state.executeOperation(this);
     }
 
