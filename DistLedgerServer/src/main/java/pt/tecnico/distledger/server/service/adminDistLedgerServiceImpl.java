@@ -63,7 +63,7 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
         try {
             // get ledger state
             LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(
-                    serializeOperations(state.getLedger()))
+                    serializeOperations(state.getLedgerState()))
                     .build();
             // return response
             getLedgerStateResponse response = getLedgerStateResponse.newBuilder().setLedgerState(ledgerState).build();
@@ -78,7 +78,7 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     @Override
     public void gossip(GossipRequest request, StreamObserver<GossipResponse> responseObserver) {
         try {
-            crossServerService.propagateState(serializeOperations(state.getLedger()), state.getReplicaTS());
+            crossServerService.propagateState(serializeOperations(state.getLedgerState()), state.getReplicaTS());
             GossipResponse response = GossipResponse.getDefaultInstance();
             responseObserver.onNext(response);
             responseObserver.onCompleted();

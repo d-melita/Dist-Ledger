@@ -37,46 +37,6 @@ public class ServerState {
         }
     }
 
-    public synchronized void addOperation(Operation op) {
-        Logger.log("Adding operation " + op.toString() + " to ledger");
-        this.ledger.add(op);
-        registeredOps.add(op.getTS());
-        Logger.log("Operation added");
-    }
-
-    public void updateReplicaTS() {
-        replicaTS.set(this.replicaId, this.replicaTS.get(this.replicaId) + 1);
-    }
-
-    public void mergeReplicaTS(List<Integer> TS) {
-        for (int i = 0; i < TS.size(); i++) {
-            if (TS.get(i) > this.replicaTS.get(i)) {
-                this.replicaTS.set(i, TS.get(i));
-            }
-        }
-    }
-
-    public void updateValueTS() {
-        valueTS.set(this.replicaId, this.valueTS.get(this.replicaId) + 1);
-    }
-
-    public void mergeValueTS(List<Integer> TS) {
-        for (int i = 0; i < TS.size(); i++) {
-            if (TS.get(i) > this.valueTS.get(i)) {
-                this.valueTS.set(i, TS.get(i));
-            }
-        }
-    }
-
-    private boolean TSBiggerThan(List<Integer> TS1, List<Integer> TS2) {
-        for (int i = 0; i < TS1.size(); i++) {
-            if (TS1.get(i) < TS2.get(i)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     // User Interface Operations
 
     public synchronized void createAccount(String name, List<Integer> prevTS) {
@@ -191,14 +151,14 @@ public class ServerState {
         Logger.log("Server deactivated");
     }
 
-    public List<Operation> getLedgerState() {
+    public synchronized List<Operation> getLedgerState() {
         Logger.log("Admin Getting ledger");
         return getLedger();
     }
 
     // Propagate ledger operations
 
-    public void propagateState(List<Operation> ledger, List<Integer> propagatedTS) {
+    public synchronized void propagateState(List<Operation> ledger, List<Integer> propagatedTS) {
         for (Operation op : ledger) {
             if (registeredOps.contains(op.getTS())) { // duplicate operation
                 Logger.log("Ignoring duplicate operation " + op.toString());
@@ -233,7 +193,9 @@ public class ServerState {
         }
     }
 
-    public synchronized void executeOperation(CreateOp op) {
+    // Operation execution methods
+
+    public void executeOperation(CreateOp op) {
         Logger.log("Executing create operation");
         if (accountExists(op.getAccount())) {
             return;
@@ -241,12 +203,12 @@ public class ServerState {
         addAccount(op.getAccount());
     }
 
-    public synchronized void executeOperation(DeleteOp op) {
+    public void executeOperation(DeleteOp op) {
         Logger.log("Executing delete operation");
         removeAccount(op.getAccount());
     }
 
-    public synchronized void executeOperation(TransferOp op) {
+    public void executeOperation(TransferOp op) {
         Logger.log("Executing transfer operation");
         String from = op.getAccount();
         String to = op.getDestAccount();
@@ -267,25 +229,67 @@ public class ServerState {
         updateAccount(op.getDestAccount(), op.getAmount());
     }
 
+    // Timestamp manipulation methods
+
+    private void addOperation(Operation op) {
+        Logger.log("Adding operation " + op.toString() + " to ledger");
+        this.ledger.add(op);
+        registeredOps.add(op.getTS());
+        Logger.log("Operation added");
+    }
+
+    private void updateReplicaTS() {
+        replicaTS.set(this.replicaId, this.replicaTS.get(this.replicaId) + 1);
+    }
+
+    private void mergeReplicaTS(List<Integer> TS) {
+        for (int i = 0; i < TS.size(); i++) {
+            if (TS.get(i) > this.replicaTS.get(i)) {
+                this.replicaTS.set(i, TS.get(i));
+            }
+        }
+    }
+
+    private void updateValueTS() {
+        valueTS.set(this.replicaId, this.valueTS.get(this.replicaId) + 1);
+    }
+
+    private void mergeValueTS(List<Integer> TS) {
+        for (int i = 0; i < TS.size(); i++) {
+            if (TS.get(i) > this.valueTS.get(i)) {
+                this.valueTS.set(i, TS.get(i));
+            }
+        }
+    }
+
+    private boolean TSBiggerThan(List<Integer> TS1, List<Integer> TS2) {
+        for (int i = 0; i < TS1.size(); i++) {
+            if (TS1.get(i) < TS2.get(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     // Getters and Setters
 
-    private synchronized void addAccount(String name) {
+    private void addAccount(String name) {
         this.accounts.put(name, 0);
     }
 
-    private synchronized void addAccount(String name, int amount) {
+    private void addAccount(String name, int amount) {
         this.accounts.put(name, amount);
     }
 
-    private synchronized void removeAccount(String name) {
+    private void removeAccount(String name) {
         this.accounts.remove(name);
     }
 
-    private synchronized void updateAccount(String name, int amount) {
+    private void updateAccount(String name, int amount) {
         accounts.put(name, accounts.get(name) + amount);
     }
 
-    public List<Operation> getLedger() {
+    private List<Operation> getLedger() {
         // create a copy of the ledger to avoid concurrent modification
         List<Operation> ledgerCopy = new CopyOnWriteArrayList<>();
         ledgerCopy.addAll(ledger);
@@ -302,11 +306,11 @@ public class ServerState {
         return this.isActive;
     }
 
-    private synchronized boolean accountExists(String name) {
+    private boolean accountExists(String name) {
         return accounts.get(name) != null;
     }
 
-    private synchronized boolean accountHasBalance(String name, int amount) {
+    private boolean accountHasBalance(String name, int amount) {
         return accounts.get(name) >= amount;
     }
 
