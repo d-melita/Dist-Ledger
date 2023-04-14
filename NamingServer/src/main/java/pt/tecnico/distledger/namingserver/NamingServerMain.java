@@ -12,17 +12,20 @@ public class NamingServerMain {
 
     private static final int namingServerPort = 5001;
 
-    public static void main(String[] args) throws IOException, InterruptedException{
+    public static void main(String[] args) throws IOException, InterruptedException {
 
         System.out.println(NamingServerMain.class.getSimpleName());
 
         // check arguments
-        if (args.length != 0) {
-            System.err.println("Usage: mvn exec:java");
+        if (args.length != 1) {
+            System.err.println("Usage: mvn exec:java -Dargs.exec=<max number of servers per service>");
             return;
         }
 
-        NamingServer namingServer = new NamingServer();
+        final int maxServersPerService = Integer.parseInt(args[0]);
+        System.out.println("Max number of servers per service: " + maxServersPerService);
+
+        NamingServer namingServer = new NamingServer(maxServersPerService);
 
         // Create a new server to listen on port
         Server server = ServerBuilder.forPort(namingServerPort)

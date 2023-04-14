@@ -23,8 +23,9 @@ public class CommandParser {
 
     public CommandParser(UserService userService) {
         this.userService = userService;
-        prevTS.add(0);
-        prevTS.add(0);
+        for (int i = 0; i < userService.getMaxServers(); i++) {
+            prevTS.add(0);
+        }
     }
 
     void parseInput() {

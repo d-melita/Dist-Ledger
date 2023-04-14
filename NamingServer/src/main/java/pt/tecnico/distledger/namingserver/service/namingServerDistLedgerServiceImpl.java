@@ -20,6 +20,22 @@ public class namingServerDistLedgerServiceImpl extends NamingServerServiceGrpc.N
     }
 
     @Override
+    public void maxServers(MaxServersRequest request, StreamObserver<MaxServersResponse> responseObserver) {
+        if (request.getService().isEmpty()) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT.withDescription(INVALID_ARGUMENT_MESSAGE).asRuntimeException());
+            return;
+        }
+        try {
+            int maxServers = namingServer.getMaxServersofService(request.getService());
+            responseObserver.onNext(MaxServersResponse.newBuilder().setMaxServers(maxServers).build());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            responseObserver.onError(Status.UNKNOWN.withDescription(DEFAULT_ERROR_MESSAGE).asRuntimeException());
+        }
+    }
+
+    @Override
     public void registerServer(RegisterRequest request, StreamObserver<RegisterResponse> responseObserver) {
         if (request.getService().isEmpty() || request.getHost().isEmpty() || request.getQualifier().isEmpty()) {
             responseObserver.onError(

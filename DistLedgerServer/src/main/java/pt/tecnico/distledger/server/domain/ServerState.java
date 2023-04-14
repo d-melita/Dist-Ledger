@@ -19,7 +19,7 @@ public class ServerState {
     private final int replicaId;
     private static final String BROKER = "broker";
 
-    public ServerState(int replicaId) {
+    public ServerState(int replicaId, int numReplicas) {
         Logger.log("Initializing ServerState");
         this.ledger = new CopyOnWriteArrayList<>();
         this.accounts = new ConcurrentHashMap<>();
@@ -28,9 +28,9 @@ public class ServerState {
         Logger.log("Broker Account created");
         Logger.log("ServerState initialized");
         this.replicaId = replicaId;
-        for (int i = 0; i < replicaId; i++) {
-            this.valueTS.add(0);
+        for (int i = 0; i < numReplicas; i++) {
             this.replicaTS.add(0);
+            this.valueTS.add(0);
         }
     }
 
@@ -65,15 +65,6 @@ public class ServerState {
     }
 
     private boolean TSBiggerThan(List<Integer> TS1, List<Integer> TS2) {
-        if (TS1.size() > TS2.size()) {
-            for (int i = TS2.size(); i < TS1.size(); i++) {
-                TS2.add(0);
-            }
-        } else if (TS2.size() > TS1.size()) {
-            for (int i = TS1.size(); i < TS2.size(); i++) {
-                TS1.add(0);
-            }
-        }
         for (int i = 0; i < TS1.size(); i++) {
             if (TS1.get(i) < TS2.get(i)) {
                 return false;
@@ -204,14 +195,6 @@ public class ServerState {
     // Propagate ledger operations
 
     public void propagateState(List<Operation> ledger, List<Integer> propagatedTS) {
-        // the propagated TS is bigger than the replica TS, so we will update the
-        // replica TS
-        if (propagatedTS.size() > this.replicaTS.size()) {
-            for (int i = this.replicaTS.size(); i < propagatedTS.size(); i++) {
-                this.replicaTS.add(0);
-                this.replicaTS.add(0);
-            }
-        }
         for (Operation op : ledger) {
             if (TSBiggerThan(this.replicaTS, op.getTS())) // duplicate operation
                 continue;

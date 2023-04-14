@@ -44,7 +44,9 @@ public class ServerMain {
         ServerState state = null;
         try {
             int server_id = namingServerService.register(SERVICE, host_address, qualifier);
-            state = new ServerState(server_id);
+            int numServers = namingServerService.maxServers(SERVICE).getMaxServers();
+            Logger.log("Server id: " + server_id + " of " + numServers);
+            state = new ServerState(server_id, numServers);
         } catch (Exception e) {
             System.out.println("Naming server not available");
             System.out.println(e.getMessage());

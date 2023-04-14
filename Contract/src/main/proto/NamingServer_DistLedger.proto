@@ -29,6 +29,14 @@ message DeleteRequest {
   string host = 2;
 }
 
+message MaxServersRequest {
+  string service = 1;
+}
+
+message MaxServersResponse {
+  int32 maxServers = 1;
+}
+
 message DeleteResponse {}
 
 
@@ -36,4 +44,5 @@ service NamingServerService {
   rpc registerServer(RegisterRequest) returns (RegisterResponse);
   rpc lookup(LookupRequest) returns (LookupResponse);
   rpc deleteServer(DeleteRequest) returns (DeleteResponse);
+  rpc maxServers(MaxServersRequest) returns (MaxServersResponse);
 }
