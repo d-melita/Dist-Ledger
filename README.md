@@ -61,10 +61,10 @@ To run the naming server, serves or clients navigate to the folder of each modul
 - For the naming server:
 
 ```s
-    mvn exec:java
+    mvn exec:java -Dargs.exec="<max number of servers>"
 ```
 
-Naming Server should be runned first since it is the one that will be used by the servers to register themselves.
+Naming Server should be runned first since it is the one that will be used by the servers to register themselves. If you run the naming server without the "-Dexec.args" flag the server will take 3 as the default number of max number of servers.
 
 - For the servers:
 
@@ -72,22 +72,24 @@ Naming Server should be runned first since it is the one that will be used by th
     mvn exec:java -Dexec.args="<port> <qualifier>"
 ```
 
+If you run the server without the "-Dexec.args" flag the server will take port number 2001 and qualifier A as default arguments.
+
 - For the admin and user clients:
 
 ```s
-    mvn exec:java
+    mvn exec:java 
 ```
 
 ### Run the Naming Server, Servers and clients in debug mode
 
 To run the naming server in debug mode you can use the flag:
 ```s
-mvn exec:java -Ddebug
+mvn exec:java -Dargs.exec="<max number of servers>" -Ddebug
 ```
 
 To run the server in debug mode you can use the flag:
 ```s
-mvn exec:java -Ddebug -Dexec.args="<port> <qualifier>" -Ddebug
+mvn exec:java -Dexec.args="<port> <qualifier>" -Ddebug
 ```
 
 To run the admin and user clients in debug mode you can use the flag:
