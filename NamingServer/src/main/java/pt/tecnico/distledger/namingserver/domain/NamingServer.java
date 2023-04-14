@@ -18,7 +18,7 @@ public class NamingServer {
         Logger.log("NamingServer initialized");
     }
 
-    public synchronized void register(String service, String host, String qualifier) {
+    public synchronized int register(String service, String host, String qualifier) {
         Logger.log("Register operation: " + service + " " + host + " " + qualifier);
         if (services.containsKey(service)) {
             Logger.log("Service already exists");
@@ -27,6 +27,7 @@ public class NamingServer {
         } else {
             addService(service, host, qualifier);
         }
+        return services.get(service).getNumServers();
     }
 
     public synchronized void addService(String service, String host, String qualifier) {

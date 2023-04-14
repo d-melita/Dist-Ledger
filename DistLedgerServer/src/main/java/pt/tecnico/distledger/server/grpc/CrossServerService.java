@@ -16,23 +16,28 @@ import java.util.Map;
 
 public class CrossServerService {
     private final String service;
+    private final String host_address;
     NamingServerService namingServerService;
     private final Map<String, DistLedgerCrossServerServiceGrpc.DistLedgerCrossServerServiceBlockingStub> stubs;
     private final Map<String, ManagedChannel> channels;
 
-    public CrossServerService(NamingServerService namingServerService, String service) {
+    public CrossServerService(NamingServerService namingServerService, String service, String host_address) {
         stubs = new HashMap<>();
         channels = new HashMap<>();
         this.namingServerService = namingServerService;
         this.service = service;
+        this.host_address = host_address;
     }
 
-    public void propagateState(List<DistLedgerCommonDefinitions.Operation> operationList) {
+    public void propagateState(List<DistLedgerCommonDefinitions.Operation> operationList, List<Integer> replicaTS) {
         // send response
         LedgerState ledgerState = LedgerState.newBuilder().addAllLedger(operationList).build();
-        PropagateStateRequest request = PropagateStateRequest.newBuilder().setState(ledgerState).build();
-        // TODO: we are propagating to ourselves, we should not
+        PropagateStateRequest request = PropagateStateRequest.newBuilder().setState(ledgerState)
+                .addAllReplicaTS(replicaTS).build();
         for (String host : searchForServers()) {
+            if (host.equals(host_address)) {
+                continue;
+            }
             if (stubs.containsKey(host)) {
                 stubs.get(host).propagateState(request);
             } else {

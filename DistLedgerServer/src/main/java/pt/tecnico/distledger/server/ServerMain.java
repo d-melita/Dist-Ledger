@@ -17,7 +17,7 @@ public class ServerMain {
     private static final String SERVICE = "DistLedger";
     private static final int NS_PORT = 5001;
     private static final NamingServerService namingServerService = new NamingServerService(LOCALHOST, NS_PORT);
-    private static final CrossServerService crossServerService = new CrossServerService(namingServerService, SERVICE);
+    private static CrossServerService crossServerService;
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -39,11 +39,12 @@ public class ServerMain {
         final int port = Integer.parseInt(args[0]);
         final String qualifier = args[1];
         String host_address = LOCALHOST + ":" + port;
+        crossServerService = new CrossServerService(namingServerService, SERVICE, host_address);
 
         ServerState state = null;
         try {
-            state = new ServerState(qualifier);
-            namingServerService.register(SERVICE, host_address, qualifier);
+            int server_id = namingServerService.register(SERVICE, host_address, qualifier);
+            state = new ServerState(server_id);
         } catch (Exception e) {
             System.out.println("Naming server not available");
             System.out.println(e.getMessage());

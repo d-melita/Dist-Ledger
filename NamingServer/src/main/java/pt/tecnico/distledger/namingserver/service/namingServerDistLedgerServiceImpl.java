@@ -27,8 +27,8 @@ public class namingServerDistLedgerServiceImpl extends NamingServerServiceGrpc.N
             return;
         }
         try {
-            namingServer.register(request.getService(), request.getHost(), request.getQualifier());
-            responseObserver.onNext(RegisterResponse.newBuilder().build());
+            int server_id = namingServer.register(request.getService(), request.getHost(), request.getQualifier());
+            responseObserver.onNext(RegisterResponse.newBuilder().setServerId(server_id).build());
             responseObserver.onCompleted();
         } catch (RegistryFailedException e) {
             responseObserver.onError(Status.ALREADY_EXISTS.withDescription(e.getMessage()).asRuntimeException());

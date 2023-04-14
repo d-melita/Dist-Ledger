@@ -18,10 +18,10 @@ public class NamingServerService {
         channel.shutdown();
     }
 
-    public void register(String service, String host, String qualifier) {
+    public int register(String service, String host, String qualifier) {
         RegisterRequest request = RegisterRequest.newBuilder().setService(service).setHost(host)
                 .setQualifier(qualifier).build();
-        stub.registerServer(request);
+        return stub.registerServer(request).getServerId();
     }
 
     public LookupResponse lookup(String service, String qualifier) {

@@ -18,7 +18,6 @@ public abstract class Operation {
 
     private List<Integer> prevTS = new ArrayList<>();
     private List<Integer> TS = new ArrayList<>();
-    private boolean isStable = false;
 
     public Operation(String fromAccount, List<Integer> prevTS, List<Integer> TS) {
         this.account = fromAccount;
@@ -41,7 +40,6 @@ public abstract class Operation {
             this.TS.add(this.prevTS.get(i));
         }
         this.TS.set(index, ReplicaTS.get(index));
-        isStable = true;
     }
 
     public String getAccount() {

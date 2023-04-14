@@ -78,7 +78,7 @@ public class adminDistLedgerServiceImpl extends AdminServiceGrpc.AdminServiceImp
     @Override
     public void gossip(GossipRequest request, StreamObserver<GossipResponse> responseObserver) {
         try {
-            crossServerService.propagateState(serializeOperations(state.getLedger()));
+            crossServerService.propagateState(serializeOperations(state.getLedger()), state.getReplicaTS());
             GossipResponse response = GossipResponse.getDefaultInstance();
             responseObserver.onNext(response);
             responseObserver.onCompleted();

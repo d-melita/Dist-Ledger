@@ -11,7 +11,9 @@ message RegisterRequest {
   string host = 3;
 }
 
-message RegisterResponse { }
+message RegisterResponse {
+  int32 server_id = 1;
+}
 
 message LookupRequest {
   string service = 1;

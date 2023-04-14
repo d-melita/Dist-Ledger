@@ -70,4 +70,8 @@ public class ServiceEntry {
             throw new RemovalFailedException(host);
         }
     }
+
+    public synchronized int getNumServers() {
+        return servers.size();
+    }
 }
