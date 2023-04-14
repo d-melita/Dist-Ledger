@@ -135,25 +135,25 @@ public class ServerState {
         if (amount <= 0) {
             throw new InvalidAmountException();
         }
-        if (!accountExists(from) && !accountExists(to)) {
-            throw new AccountDoesntExistException(from, to);
-        }
-        if (!accountExists(from)) {
-            throw new AccountDoesntExistException(from);
-        }
-        if (!accountExists(to)) {
-            throw new AccountDoesntExistException(to);
-        }
-        if (!accountHasBalance(from, amount)) {
-            throw new InsufficientFundsException(from);
-        }
-        TransferOp op = new TransferOp(from, to, amount, prevTS, null);
-        updateReplicaTS();
         if (TSBiggerThan(this.replicaTS, prevTS)) {
+            if (!accountExists(from) && !accountExists(to)) {
+                throw new AccountDoesntExistException(from, to);
+            }
+            if (!accountExists(from)) {
+                throw new AccountDoesntExistException(from);
+            }
+            if (!accountExists(to)) {
+                throw new AccountDoesntExistException(to);
+            }
+            if (!accountHasBalance(from, amount)) {
+                throw new InsufficientFundsException(from);
+            }
             updateValueTS();
             updateAccount(from, -amount);
             updateAccount(to, amount);
         }
+        TransferOp op = new TransferOp(from, to, amount, prevTS, null);
+        updateReplicaTS();
         op.setTS(this.replicaId, this.replicaTS);
         addOperation(op);
         Logger.log("Transfer completed");
